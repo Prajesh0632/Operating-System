@@ -1,0 +1,10 @@
+# Build artifacts
+*.bin
+*.img
+
+# Reference material
+*.pdf
+
+# Tooling
+.claude/
+venv/
