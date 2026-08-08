@@ -1,29 +1,44 @@
 [org 0x7c00]
 
 
-PRINT:
+mov [BOOT_DRIVE], dl ; disk driver identifier (BIOS first loads it into the dl register)
+
+
+mov bp, 0x8000
+mov sp, bp ; moving stack out of the way of the bootloader 
+
+init_read_write:
+        mov ah, 0x02 ; BIOS read sector function
+
+
+ ; Here are the addresses we wish the BIOS to read
+ ; Defined by the ES:BX (ES segment with BX offset)
+
+init_memory:
+        mov bx, 0x0000
+        mov es, bx 
+        mov bx, 0x1000
+        mov al, 4 ; no of sectors to be read 
+        mov dl, [BOOT_DRIVE]
+        call disK_load
+
+        mov bx, newline
+        call print_string
+
+        mov ax, [0x1000]
+        call print_hex
+
+
     
-    mov bx, newline
-    call print_string 
 
-    mov bx, my_string
-    call print_string
 
-    mov bx, newline
-    call print_string 
-
-    mov bx, my_name
-    call print_string
-
-    mov bx, newline
-    call print_string 
-    
-   
-    mov ax, [number] 
-    call print_hex 
+  
 
 
     
+
+
+
 
     
 END:
@@ -31,20 +46,12 @@ END:
     
 
 %include "print.asm"
+%include "disk.asm"
 
-my_string:
- db "Hello, World ", 0
-
-my_name:
-    db "Prajesh Subedi ", 0
-    
-newline:
-    db 0x0D,0x0A, 0 
+newline: db 0x0D,0x0A, 0 
 
    
-
-number:
-    dw 0xAABB 
+BOOT_DRIVE : db 0
     
     
     
@@ -52,6 +59,9 @@ number:
 
 times 510 - ($ - $$) db 0
 dw 0xaa55
+
+dw 0xFACE
+
 
 times 1474560-($-$$) db 0
 
