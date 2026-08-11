@@ -5,7 +5,7 @@ set -euo pipefail
 # Build kernel, write into boot.img (sector 1), and run QEMU with serial
 
 echo "Compiling kernel.c -> kernel.o"
-gcc -m32 -ffreestanding -fno-builtin -O2 -c kernel.c -o kernel.o
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c kernel.c -o kernel.o
 
 echo "Assembling kernel_entry.asm -> kernel_entry.o"
 nasm -f elf32 kernel_entry.asm -o kernel_entry.o
