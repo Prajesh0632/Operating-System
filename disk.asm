@@ -1,5 +1,9 @@
-disK_load:
+disk_load:
 
+  
+
+  
+    mov ah, 0x02
     mov dh, al 
     push dx 
 
@@ -30,8 +34,6 @@ disk_error:
     call print_string
     ret 
 
-
-
-
 SUCCESS : db "Disk read successful", 0    
 DISK_ERROR : db "Error while reading", 0    
+ENTERED : db "Entered", 0

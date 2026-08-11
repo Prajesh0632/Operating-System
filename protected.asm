@@ -2,19 +2,19 @@
 START_PROTECTED_MODE:
 
     call clear_screen
-
-    mov edx, success_msg
-    call print_string_pm
+    
+    call KERNEL_LOC
 
     jmp $
+
 
 
 clear_screen:
     pusha
     cld
     mov edi, 0xb8000
-    mov ecx, 80*25
-    mov ax, 0x0f20          ; space, white on black
+    mov ecx, 80 * 25
+    mov ax, 0x0f20          ; White space on black background
     rep stosw
     popa
     ret
