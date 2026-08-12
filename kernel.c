@@ -1,21 +1,43 @@
-int offset_x = 0, offset_y = 0;
+#define MAX_COL 80
+#define MAX_ROW 25 
+#define VGA_ADDRESS 0xb8000
+
+int row = 0, col = 0;
 
 void kprint(char* string) {
 
-    volatile char *video_memory = (volatile char *)(0xb8000 + offset_x);
+    volatile char *video_memory = (volatile char *)VGA_ADDRESS;
 
-    int index = 0;
     int color = 0x0F;
     for(int i = 0; string[i] != '\0'; i++) {
+        
+        
+        if(string[i] == '\n') {
+            row++;
+            col = 0;
+            continue;
+        }
 
-        video_memory[index] = string[i];
-        video_memory[index + 1] = color;
+        int offset = (row * MAX_COL + col) * 2;
 
-        index += 2;
+
+        video_memory[offset] = string[i];
+        video_memory[offset + 1] = color;
+
+        col ++;
+
+        if(col >= MAX_COL) {
+            col = 0;
+            row ++;
+        }
+
+        if(row >= MAX_ROW) {
+            row = 0;
+        }
         
     }
 
-    offset_x += index;
+    
 
 
 
@@ -27,11 +49,15 @@ void kprint(char* string) {
 
 void main() {
     
-    char* name = "Prajesh";
+    char* name = "Prajesh\n";
     kprint(name);
 
-    char* surname = " Subedi";
+    char* surname = "Subedi\n";
     kprint(surname);
+
+    char* country = "Nepal";
+    kprint(country);
+
 
     
     
