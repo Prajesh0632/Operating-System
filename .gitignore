@@ -1,6 +1,8 @@
 # Build artifacts
 *.bin
 *.img
+*.o
+
 
 # Reference material
 *.pdf

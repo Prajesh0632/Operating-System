@@ -23,5 +23,7 @@ nasm -f bin -d FLOPPY -Ibootloader/ $BOOT_FILE -o boot.img
 echo "Writing kernel.bin into boot.img (sector 1)"
 dd if=kernel.bin of=boot.img bs=512 seek=1 conv=notrunc
 
+truncate -s 1474560 boot.img
+
 echo "Launching QEMU (serial to stdio)"
 env -i HOME="$HOME" DISPLAY="$DISPLAY" XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}" /usr/bin/qemu-system-i386 -drive file=boot.img,format=raw,index=0,if=floppy

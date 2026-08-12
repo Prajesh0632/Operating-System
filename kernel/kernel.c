@@ -72,7 +72,3 @@ void main() {
     
 }
 
-void _start() {
-    main();
-    while(1); // Infinite halt loop
-}
