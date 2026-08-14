@@ -1,23 +1,25 @@
-#include "print.c"
+#include "screen.h"
 
 
 
 void main() {
 
+
+    init_screen();
+
  
-    for(int i = 0; i < 1000; i++) {
-          
-        char* name = "Prajesh ";
-        kprint(name);
-
-    
-
-    }
+   
 
 
-    kprint("My name is Prajesh");
-    
-    
+   
+
+    sprint("Prajesh SUbedi", 0, 0);
+    sprint("Prajesh SUbediii", 1, 0);
+    cls();
+    sprint("Hello, World!\n", -1, -1);
+    sprint("Prajesh", -1, -1); 
+
+
 
     
     
