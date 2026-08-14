@@ -1,4 +1,5 @@
 #include "screen.h"
+#include "../interrupts/idt.h"
 
 
 
@@ -6,18 +7,13 @@ void main() {
 
 
     init_screen();
+    init_idt();
 
+    asm volatile("int $2");
  
+
+    sprint("Success", 1, 0);
    
-
-
-   
-
-    sprint("Prajesh SUbedi", 0, 0);
-    sprint("Prajesh SUbediii", 1, 0);
-    cls();
-    sprint("Hello, World!\n", -1, -1);
-    sprint("Prajesh", -1, -1); 
 
 
 

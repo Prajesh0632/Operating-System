@@ -9,7 +9,7 @@ KERNEL_LOC equ 0x1000
 
     mov [BOOT_DRIVE_NUM], dl 
 
-    mov bp, 0x9000
+    mov bp, 0x9FC00
     mov sp, bp 
 
     mov bx, msg_rm 
@@ -36,7 +36,7 @@ load_kernel:
 
     mov bx, KERNEL_LOC
     mov dl, [BOOT_DRIVE_NUM]
-    mov al, 15 
+    mov al, 50
 
     
     

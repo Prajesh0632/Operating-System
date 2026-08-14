@@ -6,15 +6,26 @@ set -euo pipefail
 BOOT_FILE="bootloader/boot_kernel.asm"
 KERNEL_FILE="kernel/kernel.c"
 KERNEL_ENTRY_FILE="kernel/kernel_entry.asm"
+IDT_DESCRIPTION_FILE="interrupts/idt.c"
+INTERRUPT="interrupts/interrupt.asm"
 
 echo "Compiling kernel.c -> kernel.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $KERNEL_FILE -o kernel.o
 
+echo "Compiling idt.c -> idt.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $IDT_DESCRIPTION_FILE -o idt.o
+
+
 echo "Assembling kernel_entry.asm -> kernel_entry.o"
 nasm -f elf32 $KERNEL_ENTRY_FILE -o kernel_entry.o
 
-echo "Linking kernel at 0x1000 -> kernel.bin"
-ld -m elf_i386 -Ttext 0x1000 --oformat binary kernel_entry.o kernel.o -o kernel.bin
+echo "Assembling interrupt.asm -> interrupt.o"
+nasm -f elf32 $INTERRUPT -o interrupt.o
+
+echo "Linking kernel with interrupts at 0x1000 -> kernel.bin"
+ld -m elf_i386 -Ttext 0x1000 --oformat binary kernel_entry.o kernel.o idt.o interrupt.o -o kernel.bin
+
+
 
 echo "Assembling bootloader -> boot_sector.img"
 nasm -f bin -d FLOPPY -Ibootloader/ $BOOT_FILE -o boot.img
