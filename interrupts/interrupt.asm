@@ -11,8 +11,9 @@ isr_stub_%+%1:
     push dword %1        ; Push interrupt number
     call handle_interrupt
     add esp, 4           ; Remove interrupt number
-    popa                 ; Restore registers
     add esp, 4           ; Remove dummy error code
+
+    popa                 ; Restore registers
     iret                 ; Return from interrupt
 %endmacro
 
@@ -33,6 +34,7 @@ isr_stub_%+%1:
 ; CPU exceptions that push error codes: 8, 10, 11, 12, 13, 14, 17, 21, 29, 30
 isr_no_err_stub 0
 isr_no_err_stub 1
+
 isr_no_err_stub 2
 isr_no_err_stub 3
 isr_no_err_stub 4
@@ -64,13 +66,30 @@ isr_err_stub    29  ; VMM Communication Exception
 isr_err_stub    30  ; Security Exception
 isr_no_err_stub 31
 
+isr_no_err_stub 32
+isr_no_err_stub 33
+isr_no_err_stub 34
+isr_no_err_stub 35
+isr_no_err_stub 36
+isr_no_err_stub 37
+isr_no_err_stub 38
+isr_no_err_stub 39
+isr_no_err_stub 40
+isr_no_err_stub 41
+isr_no_err_stub 42
+isr_no_err_stub 43
+isr_no_err_stub 44
+isr_no_err_stub 45
+isr_no_err_stub 46
+isr_no_err_stub 47
+
 
 
 ;setting up ISR address pointers 
 global isr_stub_table
 isr_stub_table:
 %assign i 0 
-%rep    32 
+%rep    48
     dd isr_stub_%+i 
 %assign i i+1 
 %endrep
