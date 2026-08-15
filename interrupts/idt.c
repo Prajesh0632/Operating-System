@@ -1,5 +1,6 @@
-#include "../port_IO/io.h"
 #include "idt.h"
+#include "../keyboard_driver/keyboard.h"
+#include "../port_IO/io.h"
 
 
 idt_t interrupts[MAX_INTR];
@@ -56,16 +57,7 @@ void handle_interrupt(int vector, int error_code) {
 
         if(vector == 33) {
 
-            uint8_t key_code = port_byte_in(0x60);
-
-            if(!(key_code & 0x80)) {
-             
-            char key = keyboard_map[key_code];
-   
-            char c[2] = {key, '\0'};
-            sprint(c, -1, -1);
-
-            }
+            handle_keyboard();
 
            
         } 
