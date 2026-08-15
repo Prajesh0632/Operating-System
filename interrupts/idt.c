@@ -1,6 +1,6 @@
 #include "idt.h"
 #include "../keyboard_driver/keyboard.h"
-#include "../port_IO/io.h"
+#include "../port_io/io.h"
 
 
 idt_t interrupts[MAX_INTR];

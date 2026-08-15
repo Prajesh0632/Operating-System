@@ -1,4 +1,4 @@
-#include "../port_IO/io.h"
+#include "../port_io/io.h"
 #include "screen.h"
 
 
@@ -43,49 +43,37 @@ void sprint(char* string, int row, int col) {
     for(int i = 0; string[i] != '\0'; i++) {
         
         
-        if(string[i] == '\n') {
+        // 1. Handle Newline
+        if (string[i] == '\n') {
             row++;
             col = 0;
         }
 
-        else {
 
 
-        if(string[i] == '\b'){
-            if(col != 0) {
+        // 2. Handle Backspace
+        else if (string[i] == '\b') {
+            if (col > 0) {
                 col--;
-                write_char(video_memory, get_offset(row, col), ' ', WHITE);
-
-            }
-
-            if(col == 0 && row != 0) {
+            } else if (row > 0) {
                 row--;
-                col = MAX_COL-1;
+                col = MAX_COL - 1;
             }
-           
-
+            // Erase the character at the target position
+            write_char(video_memory, get_offset(row, col), ' ', WHITE);
         }
 
-        else{
 
+        // 3. Handle Printable Characters
+        else {
             write_char(video_memory, get_offset(row, col), string[i], WHITE);
-             col ++;
+            col++;
 
-        if(col == MAX_COL) {
-            col = 0;
-            row ++;
+            if (col == MAX_COL) {
+                col = 0;
+                row++;
+            }
         }
-            
-        }
-      
-
-       
-       
-
-            
-        }
-
-
  
        
          if(row == MAX_ROW) {
@@ -146,10 +134,7 @@ void handle_scroll(volatile char* video_memory) {
 
 void cls() {
 
-    int offset = get_cursor_offset();
-    int row = offset / MAX_COL;
-    int col = offset % MAX_COL;
-
+   
     volatile char *video_memory = (volatile char *)VGA_ADDRESS;
 
     for(int r = 0; r < MAX_ROW; r++) {
@@ -160,10 +145,8 @@ void cls() {
         }
     }
 
-    row = 0;
-    col = 0;
-
-    set_cursor_offset(row, col);
+   
+    set_cursor_offset(0, 0);
 
 }
 

@@ -12,7 +12,8 @@ KERNEL_FILE="kernel/kernel.c"
 IDT_DESCRIPTOR="interrupts/idt.c"
 SCREEN_DRIVER="screen_driver/screen.c"
 KEYBOARD_DRIVER="keyboard_driver/keyboard.c"
-PORT_IO="port_IO/io.c"
+PORT_IO="port_io/io.c"
+COMMAND_SHELL="command_shell/shell.c"
 
 echo "Compiling kernel.c -> kernel.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $KERNEL_FILE -o kernel.o
@@ -29,6 +30,9 @@ gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $SCREEN_DRIVER -o 
 echo "Compiling io.c -> io.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $PORT_IO -o io.o
 
+echo "Compiling shell.c -> shell.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $COMMAND_SHELL -o shell.o
+
 
 
 
@@ -40,7 +44,7 @@ echo "Assembling interrupt.asm -> interrupt.o"
 nasm -f elf32 $INTERRUPT -o interrupt.o
 
 echo "Linking kernel with interrupts at 0x1000 -> kernel.bin"
-ld -m elf_i386 -Ttext 0x1000 --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o  -o kernel.bin
+ld -m elf_i386 -Ttext 0x1000 --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o -o kernel.bin
 
 
 
