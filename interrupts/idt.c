@@ -1,6 +1,7 @@
 #include "idt.h"
-#include "../keyboard_driver/keyboard.h"
 #include "../port_io/io.h"
+#include "../command_shell/shell.h"
+#include "../keyboard_driver/keyboard.h"
 
 
 idt_t interrupts[MAX_INTR];
@@ -57,7 +58,11 @@ void handle_interrupt(int vector, int error_code) {
 
         if(vector == 33) {
 
-            handle_keyboard();
+            if(SHELL_ACTIVE) {
+               handle_keyboard();
+
+            }
+
 
            
         } 
@@ -85,7 +90,6 @@ arguments:
 		vectors on the master become offset1..offset1+7
 	offset2 - same for slave PIC: offset2..offset2+7
 */
-
 void PIC_remap(int offset1, int offset2)
 {
 	port_byte_out(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);  // starts the initialization sequence (in cascade mode)

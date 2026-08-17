@@ -1,6 +1,8 @@
 #include "../port_io/io.h"
 #include "screen.h"
 
+char int_map[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+
 
 void init_screen() {
     cls();
@@ -91,6 +93,34 @@ void sprint(char* string, int row, int col) {
 
     
 
+
+
+
+}
+
+
+void iprint(int integer) {
+
+    
+
+    
+
+
+
+    int value = integer;
+    int buffer[12];
+    int index = 0;
+
+    while(value != 0) {
+        int rem = value % 10;
+        buffer[index++] = rem;
+        value = value / 10;
+    }
+
+    for(int i = index-1; i >= 0; i--) {
+        char s[2] = {int_map[buffer[i]], '\0'};
+        sprint(s, -1, -1);
+    }
 
 
 

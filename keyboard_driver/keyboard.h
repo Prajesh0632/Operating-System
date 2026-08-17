@@ -6,6 +6,7 @@
 #define BUFFER_SIZE 256
 
 
+void execute_command(char*);
 
 extern bool CAPS_LOCK;
 extern bool SHIFT_PRESS;
@@ -31,5 +32,5 @@ static const char lower_keyboard_map[] = {
 
 
 
-  void handle_keyboard(void);
+  bool handle_keyboard(void);
   char get_pressed_char(void);

@@ -51,4 +51,3 @@ init_protected_mode:
 %include "protected.asm"  
 %include "gdt.asm" 
 
-success : db "Huccess", 0

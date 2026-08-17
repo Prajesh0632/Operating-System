@@ -12,10 +12,10 @@ int buffer_index;
 
 
 
-void handle_keyboard() {
+bool handle_keyboard() {
 
     char c = get_pressed_char();
-    if(c == 0) return;
+    if(c == 0) return false;
 
     if(c == '\b') {
        
@@ -38,9 +38,13 @@ void handle_keyboard() {
           sprint("\n\0", -1, -1);
 
 
+          
           execute_command(input_buffer);
+          sprint("kernel>",-1,-1);
 
 
+
+         return true;
 
     }
     
@@ -50,6 +54,9 @@ void handle_keyboard() {
         char s[2] = {c, '\0'};
         sprint(s, -1, -1);
     }
+
+
+    return false;
     
 
     

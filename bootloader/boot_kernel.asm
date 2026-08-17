@@ -1,6 +1,6 @@
 [org 0x7c00]
 
-KERNEL_LOC equ 0x1000 
+KERNEL_LOC equ 0x10000 
 
     xor ax, ax 
     mov es, ax 
@@ -9,13 +9,16 @@ KERNEL_LOC equ 0x1000
 
     mov [BOOT_DRIVE_NUM], dl 
 
-    mov bp, 0x9FC00
-    mov sp, bp 
+    mov ax, 0x9000
+    mov ss, ax
+    mov sp, 0xFC00
 
     mov bx, msg_rm 
     call print_string 
 
     call load_kernel 
+
+    call detect_memory
 
     call switch_to_32_bit_protected
 
@@ -34,14 +37,20 @@ load_kernel:
     call print_string
 
 
-    mov bx, KERNEL_LOC
+    mov ax, KERNEL_LOC >> 4  ; es:bx = physical KERNEL_LOC (bx alone can't hold a 20-bit address)
+    mov es, ax
+    xor bx, bx
     mov dl, [BOOT_DRIVE_NUM]
     mov al, 50
 
-    
-    
+
+
     call disk_load
-    ret 
+
+    xor ax, ax               ; restore es=0 -- detect_memory's es:di addressing assumes it
+    mov es, ax
+
+    ret
 
 
 
@@ -53,6 +62,7 @@ load_kernel:
 %include "print.asm"
 %include "disk.asm"
 %include "switch_32.asm"
+%include "../low level/detect_ram.asm"
 
 
 msg_rm : db "Booted into Real 16 bit-mode", 0
