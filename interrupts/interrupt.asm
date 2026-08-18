@@ -31,6 +31,7 @@ isr_stub_%+%1:
     iret                 ; Return from interrupt
 %endmacro
 
+
 ; CPU exceptions that push error codes: 8, 10, 11, 12, 13, 14, 17, 21, 29, 30
 isr_no_err_stub 0
 isr_no_err_stub 1

@@ -5,6 +5,7 @@
 
 
 #define MAX_INTR 256
+#define CURR_INTR 48
 
 
 #define PIC1		0x20		/* IO base address for master PIC */

@@ -1,6 +1,6 @@
 #include "shell.h"
 #include "../screen_driver/screen.h"
-#include "../memory/memory.h"
+#include "../memory/pmm.h"
 
 bool SHELL_ACTIVE = true;
 volatile bool executed = true;
@@ -30,11 +30,17 @@ void execute_command(char* command) {
         cls();
     }
 
-    else if(strcmp(command, "avail") == 0) {
+    else if(strcmp(command, "-help") == 0) {
+
+        sprint("clear : clears the screen\n", -1, -1);
+        sprint("bitmap : size of 1 unit of physical memory\n", -1, -1);
+    }
+
+    else if(strcmp(command, "bitmap") == 0) {
 
         sprint("Bitmap Size : ", -1, -1);
-        iprint(frames);
-        sprint("\n", -1, -1);
+        iprint(frames / (1024 * 8));
+        sprint(" KB\n", -1, -1);
 
     }
 
@@ -43,6 +49,7 @@ void execute_command(char* command) {
         sprint("No command Found for ", -1, -1);
         sprint(command, -1, -1);
         sprint("\n", -1,-1);
+        sprint("Use -help command for more information.\n", -1, -1);
     }
 
 }

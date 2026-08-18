@@ -12,6 +12,7 @@ static bool vectors[MAX_INTR];
 
 extern void* isr_stub_table[];
 
+
 static inline uint16_t get_code_segment(void) {
     uint16_t cs;
     __asm__ volatile ("mov %%cs, %0" : "=r"(cs));
@@ -22,12 +23,16 @@ void init_idt() {
     idtr.base = (uintptr_t)(&interrupts[0]);
     idtr.limit = (uint16_t)(sizeof(idt_t) * MAX_INTR - 1);
 
-    for (int vector = 0; vector < 48; vector++) {
+
+    
+    for (int vector = 0; vector < CURR_INTR; vector++) {
             idt_set_descriptor(vector, isr_stub_table[vector], 0x8E);
         vectors[vector] = true;
 
         
     }
+
+    
 
     PIC_remap(0x20, 0x28);   // remap IRQ0-7 -> 32-39, IRQ8-15 -> 40-47
 

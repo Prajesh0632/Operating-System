@@ -1,7 +1,8 @@
 #include "../screen_driver/screen.h"
 #include "../interrupts/idt.h"
 #include "../command_shell/shell.h"
-#include "../memory/memory.h"
+#include "../memory/pmm.h"
+#include "../memory/heap.h"
 
 
 
@@ -9,19 +10,21 @@ void main() {
 
 
     init_screen();
-    init_idt();
     init_mem();
-
-    uint64_t* addr = fralloc(4096);
-    iprint((int)addr);
-    sprint("\n",-1,-1);
+    init_heap();
+    init_idt();
     
-    free(addr, 4096);
 
+    uint64_t addr = halloc(0, 2);
+    iprint((int)addr);
+    sprint("\n", -1, -1);
 
-    uint64_t* addr1 = fralloc(4096);
+    uint64_t addr1 = halloc(0, 2);
     iprint((int)addr1);
-    sprint("\n",-1,-1);
+    sprint("\n", -1, -1);
+    
+
+    
     
     
 

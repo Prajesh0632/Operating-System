@@ -26,6 +26,6 @@ uint64_t align_down(uint64_t);
 
 void init_mem(void);
 
-uint64_t* fralloc(uint64_t);
+uint64_t fralloc(uint64_t);
 
 void free(uint64_t*, uint64_t);

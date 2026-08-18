@@ -111,6 +111,11 @@ void iprint(int integer) {
     int buffer[12];
     int index = 0;
 
+    if(value == 0) {
+        sprint("0\0",-1,-1);
+        return;
+    }
+
     while(value != 0) {
         int rem = value % 10;
         buffer[index++] = rem;

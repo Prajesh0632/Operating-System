@@ -14,7 +14,8 @@ SCREEN_DRIVER="screen_driver/screen.c"
 KEYBOARD_DRIVER="keyboard_driver/keyboard.c"
 PORT_IO="port_io/io.c"
 COMMAND_SHELL="command_shell/shell.c"
-MEMORY="memory/memory.c"
+PMM="memory/pmm.c"
+HEAP="memory/heap.c"
 
 echo "Compiling kernel.c -> kernel.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $KERNEL_FILE -o kernel.o
@@ -32,8 +33,12 @@ echo "Compiling io.c -> io.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $PORT_IO -o io.o
 
 
-echo "Compiling memory.c -> memory.o"
-gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $MEMORY -o memory.o
+echo "Compiling pmm.c -> pmm.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $PMM -o memory.o
+
+echo "Compiling heap.c -> heap.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $HEAP -o heap.o
+
 
 echo "Compiling shell.c -> shell.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $COMMAND_SHELL -o shell.o
@@ -49,7 +54,7 @@ echo "Assembling interrupt.asm -> interrupt.o"
 nasm -f elf32 $INTERRUPT -o interrupt.o
 
 echo "Linking kernel with interrupts at 0x10000 -> kernel.bin"
-ld -m elf_i386 -Ttext 0x10000 --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o memory.o -o kernel.bin
+ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o memory.o heap.o -o kernel.bin
 
 
 
@@ -63,4 +68,4 @@ dd if=kernel.bin of=boot.img bs=512 seek=1 conv=notrunc
 truncate -s 1474560 boot.img
 
 echo "Launching QEMU (serial to stdio)"
-env -i HOME="$HOME" DISPLAY="$DISPLAY" XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}" /usr/bin/qemu-system-i386 -m 128 -drive file=boot.img,format=raw,index=0,if=floppy
+env -i HOME="$HOME" DISPLAY="$DISPLAY" XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}" /usr/bin/qemu-system-i386 -m 128 -drive file=boot.img,format=raw,index=0,if=floppy -no-reboot
