@@ -29,5 +29,8 @@ void init_heap(void);
 void allocate_frame(void);
 uint64_t halloc(uint8_t, uint64_t);
 uint64_t alloc(uint8_t, uint64_t, int);
+uint64_t realloc(HeapNode*,uint8_t, uint64_t);
+uint8_t hfree(uint64_t);
+HeapNode* merge_nodes(HeapNode*, HeapNode*);
 
 
