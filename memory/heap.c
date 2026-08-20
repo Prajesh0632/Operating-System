@@ -10,22 +10,26 @@ Heap heap_list[MAX_HEAPS];
 
 
 
-void allocate_frame() {
+uint8_t allocate_frame() {
 
     if(current_heaps < MAX_HEAPS)
     {
 
-         heap_list[current_heaps].base = fralloc(PAGE_SIZE);    
-         heap_list[current_heaps].availabe_memory = PAGE_SIZE;
+         heap_list[current_heaps].base = fralloc(PAGE_SIZE);   
+         if(heap_list[current_heaps].base == -1) {
+            return 0;
+         } 
+         heap_list[current_heaps].start = NULL;
          current_heaps++;
+
+         return 1;
          
 
     }
 
-    if(current_heaps == 1) {
-        heap_list[0].start = NULL;
-        
-    }
+    return 0;
+
+    
 
    
 
@@ -43,11 +47,16 @@ void init_heap() {
 
 
 uint64_t halloc(uint8_t type, uint64_t size) {
+
+
+    if(size + sizeof(HeapNode) > PAGE_SIZE) {
+        return 0;
+    }
     
     for(int i = 0; i < current_heaps; i++) {
         
-        uint64_t available = PAGE_SIZE;
         HeapNode* node = heap_list[i].start;
+        HeapNode* tail = NULL;
 
         while(node != NULL) {
 
@@ -55,22 +64,44 @@ uint64_t halloc(uint8_t type, uint64_t size) {
                 return realloc(node, type, size);
             }
             
-            available -= (node->limit + sizeof(HeapNode));
+            tail = node;
             node = node->next;
             
 
         }
 
-        if(available >= size + sizeof(HeapNode)) {
-           return alloc(type, size, i);
+
+        if(!tail) {
+            return alloc(type, size, i);
         }
+        
+
+        uint64_t tail_end = tail->base + tail->limit + sizeof(HeapNode);
+
+        uint64_t occupied = tail_end - heap_list[i].base;
+        uint64_t available = PAGE_SIZE - occupied;
+
+        if(available >= size + sizeof(HeapNode)) {
+            return alloc(type, size, i);
+        }
+        
+        
+        
 
         
     }
 
-    allocate_frame();
-    return alloc(type, size, current_heaps-1);
+   
 
+    uint8_t success = allocate_frame();
+    if(success) return alloc(type, size, current_heaps-1);
+    
+    return 0;
+
+    
+
+
+    
    
 
 }
@@ -95,13 +126,11 @@ uint64_t alloc(uint8_t type, uint64_t size, int index) {
       
     Heap* heap = &heap_list[index];
     HeapNode* node = heap->start;
-    uint64_t offset = 0;
 
     if(node == NULL) {
         
         HeapNode* first_node = create_node(heap->base, size, type);
         heap->start = first_node;
-        heap->availabe_memory -= sizeof(HeapNode) + size;
 
         return (first_node->base + sizeof(HeapNode)); 
         
@@ -112,17 +141,15 @@ uint64_t alloc(uint8_t type, uint64_t size, int index) {
     HeapNode* prev = NULL;
     while(node != NULL) {
          
-        offset += node->limit + sizeof(HeapNode);
         prev = node;
         node = node->next;
 
     }
 
 
-
-    HeapNode* new_node = create_node(heap->base + offset, size, type);
+    uint64_t new_node_addr = prev->base + sizeof(HeapNode) + prev->limit;
+    HeapNode* new_node = create_node(new_node_addr, size, type);
     prev->next = new_node;
-    heap->availabe_memory -= sizeof(HeapNode) + size;
 
 
     return (new_node->base + sizeof(HeapNode));
@@ -153,7 +180,9 @@ uint64_t realloc(HeapNode* node, uint8_t type, uint64_t size) {
 
     if(remaining >= sizeof(HeapNode) + 8) {
          
-        left_node = create_node(node->base, size, type);
+        left_node = node;
+        left_node->limit = size;
+        left_node->occupied = true;
         HeapNode* right_node = create_node(left_node->base + left_node->limit + sizeof(HeapNode), remaining - sizeof(HeapNode), type);
 
         left_node->next = right_node;
@@ -164,7 +193,9 @@ uint64_t realloc(HeapNode* node, uint8_t type, uint64_t size) {
     }
 
     else {
-        left_node = create_node(node->base, node->limit, type);
+        left_node = node;
+        node->type = type;
+        left_node->occupied = true;
         left_node->next = next;
     }
 
@@ -180,13 +211,13 @@ uint64_t realloc(HeapNode* node, uint8_t type, uint64_t size) {
 
 
 
-HeapNode* merge_nodes(HeapNode* left, HeapNode* right) {
+void merge_nodes(HeapNode* left, HeapNode* right) {
 
     left->limit = left->limit + sizeof(HeapNode) + right->limit;
     left->next = right->next;
     left->occupied = 0;
 
-    return left;
+    
 
 }
 
@@ -223,15 +254,14 @@ uint8_t hfree(uint64_t address) {
 
 
     HeapNode* next = node->next;
-    HeapNode* temp = NULL;
 
     if (next && !next->occupied) {
-        temp = merge_nodes(node, next); // Merge with NEXT first (if free)
+        merge_nodes(node, next); // Merge with NEXT first (if free)
 
     }
 
     if (prev && !prev->occupied) {
-        temp = merge_nodes(prev, temp);     // Merge with PREV second (if free)
+        merge_nodes(prev, node);     // Merge with PREV second (if free)
 
         
         // If prev was the first node in the heap, heap->start remains prev!
@@ -240,7 +270,7 @@ uint8_t hfree(uint64_t address) {
         }
     }
 
-   
+    
 
 
     return 1;
