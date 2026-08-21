@@ -1,9 +1,8 @@
-[ bits 32] ; We ’re in protected mode by now , so use 32 - bit instructions.
-[ extern main ]
-
-
+[bits 32]
+extern main
+extern _kernel_end
 
 global _start
 _start:
-   call main 
-   jmp $
+    call main
+    jmp $

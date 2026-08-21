@@ -50,6 +50,14 @@ void init_bitmap() {
 
     }
 
+    
+    //mark for BOOTLOADER, GDT, TSS
+    uint32_t start = 0;
+    uint32_t end = 0x10000;
+    for(uint32_t i = start; i < align_down(end); i += PAGE_SIZE) {
+        bitmap[i / PAGE_SIZE] = 1;
+    }
+
 
      
 
@@ -72,13 +80,16 @@ void set_bitmap_size() {
     uint64_t max_memory_offset = 0;
 
     for (uint32_t i = 0; i < MEMORY_MAP_COUNT; i++) {
+          if(MEMORY_MAP_BUFFER[i].type != 1) continue;
           uint64_t end = MEMORY_MAP_BUFFER[i].base + MEMORY_MAP_BUFFER[i].length;
+
           if (end > max_memory_offset) {
              max_memory_offset = end;
           }
       }
 
       frames = (uint32_t)(max_memory_offset / PAGE_SIZE);
+      if(frames > MAX_FRAMES) frames = MAX_FRAMES;
         
 
 }

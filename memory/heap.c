@@ -46,11 +46,11 @@ void init_heap() {
 }
 
 
-uint64_t halloc(uint8_t type, uint64_t size) {
+void* halloc(uint64_t size) {
 
 
     if(size + sizeof(HeapNode) > PAGE_SIZE) {
-        return 0;
+        return NULL;
     }
     
     for(int i = 0; i < current_heaps; i++) {
@@ -61,7 +61,7 @@ uint64_t halloc(uint8_t type, uint64_t size) {
         while(node != NULL) {
 
             if(node->limit >= size && !node->occupied) {
-                return realloc(node, type, size);
+                return (void*)(uintptr_t)realloc(node, size);
             }
             
             tail = node;
@@ -72,7 +72,7 @@ uint64_t halloc(uint8_t type, uint64_t size) {
 
 
         if(!tail) {
-            return alloc(type, size, i);
+            return (void*)(uintptr_t)alloc(size, i);
         }
         
 
@@ -82,7 +82,7 @@ uint64_t halloc(uint8_t type, uint64_t size) {
         uint64_t available = PAGE_SIZE - occupied;
 
         if(available >= size + sizeof(HeapNode)) {
-            return alloc(type, size, i);
+            return (void*)(uintptr_t)alloc(size, i);
         }
         
         
@@ -94,9 +94,9 @@ uint64_t halloc(uint8_t type, uint64_t size) {
    
 
     uint8_t success = allocate_frame();
-    if(success) return alloc(type, size, current_heaps-1);
+    if(success) return (void*)(uintptr_t)alloc(size, current_heaps-1);
     
-    return 0;
+    return NULL;
 
     
 
@@ -108,12 +108,11 @@ uint64_t halloc(uint8_t type, uint64_t size) {
 
 
 
-HeapNode* create_node(uint64_t addr, uint64_t limit, uint8_t type) {
+HeapNode* create_node(uint64_t addr, uint64_t limit) {
 
     HeapNode* new_node = (HeapNode*)(uintptr_t)(addr);
     new_node->base = addr;
     new_node->limit = limit;
-    new_node->type = type;
     new_node->occupied = true;
     new_node->next = NULL;
 
@@ -122,14 +121,14 @@ HeapNode* create_node(uint64_t addr, uint64_t limit, uint8_t type) {
 }
 
 
-uint64_t alloc(uint8_t type, uint64_t size, int index) {
+uint64_t alloc(uint64_t size, int index) {
       
     Heap* heap = &heap_list[index];
     HeapNode* node = heap->start;
 
     if(node == NULL) {
         
-        HeapNode* first_node = create_node(heap->base, size, type);
+        HeapNode* first_node = create_node(heap->base, size);
         heap->start = first_node;
 
         return (first_node->base + sizeof(HeapNode)); 
@@ -148,7 +147,7 @@ uint64_t alloc(uint8_t type, uint64_t size, int index) {
 
 
     uint64_t new_node_addr = prev->base + sizeof(HeapNode) + prev->limit;
-    HeapNode* new_node = create_node(new_node_addr, size, type);
+    HeapNode* new_node = create_node(new_node_addr, size);
     prev->next = new_node;
 
 
@@ -158,12 +157,11 @@ uint64_t alloc(uint8_t type, uint64_t size, int index) {
 }
 
 
-uint64_t realloc(HeapNode* node, uint8_t type, uint64_t size) {
+uint64_t realloc(HeapNode* node, uint64_t size) {
 
        
     if(node->limit == size) {
 
-    node->type = type;
     node->occupied = true;
 
     return (node->base + sizeof(HeapNode));
@@ -183,7 +181,7 @@ uint64_t realloc(HeapNode* node, uint8_t type, uint64_t size) {
         left_node = node;
         left_node->limit = size;
         left_node->occupied = true;
-        HeapNode* right_node = create_node(left_node->base + left_node->limit + sizeof(HeapNode), remaining - sizeof(HeapNode), type);
+        HeapNode* right_node = create_node(left_node->base + left_node->limit + sizeof(HeapNode), remaining - sizeof(HeapNode));
 
         left_node->next = right_node;
         right_node->next = next;
@@ -194,7 +192,6 @@ uint64_t realloc(HeapNode* node, uint8_t type, uint64_t size) {
 
     else {
         left_node = node;
-        node->type = type;
         left_node->occupied = true;
         left_node->next = next;
     }
@@ -223,7 +220,9 @@ void merge_nodes(HeapNode* left, HeapNode* right) {
 
 
 
-uint8_t hfree(uint64_t address) {
+uint8_t hfree(void* ptr) {
+
+    uint64_t address = (uint64_t)(uintptr_t)(ptr);
      
     int index = -1;
 
@@ -271,7 +270,7 @@ uint8_t hfree(uint64_t address) {
     }
 
     
-
+     
 
     return 1;
 

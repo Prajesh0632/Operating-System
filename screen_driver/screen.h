@@ -20,6 +20,8 @@ void handle_scroll(volatile char*);
 void cls();
 void sprint(char*, int, int);
 void iprint(int);
+void cprint(char);
+void hprint(uint32_t);
 void write_char(volatile char*, int, char, int);
 void set_cursor_offset(int, int);
 int get_cursor_offset();

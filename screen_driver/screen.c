@@ -131,6 +131,20 @@ void iprint(int integer) {
 
 }
 
+void cprint(char c) {
+    char s[2] = {c, '\0'};
+    sprint(s, -1, -1);
+}
+
+void hprint(uint32_t value) {
+    char hex[] = "0123456789ABCDEF";
+    sprint("0x", -1, -1);
+    for(int shift = 28; shift >= 0; shift -= 4) {
+        char s[2] = {hex[(value >> shift) & 0xF], '\0'};
+        sprint(s, -1, -1);
+    }
+}
+
 
 
 int get_offset(int row_val,int col_val){

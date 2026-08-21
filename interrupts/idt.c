@@ -2,6 +2,8 @@
 #include "../port_io/io.h"
 #include "../command_shell/shell.h"
 #include "../keyboard_driver/keyboard.h"
+#include "../screen_driver/screen.h"
+#include "../memory/paging.h"
 
 
 idt_t interrupts[MAX_INTR];
@@ -60,6 +62,12 @@ void idt_set_descriptor(int vector, void* isr, uint8_t flags) {
 void handle_interrupt(int vector, int error_code) {
     
         if(vector == 0) sprint("Division by zero occured", -1, -1);
+
+        if(vector == 14) {
+    sprint("Page Fault at: ", -1, -1);
+    hprint((uint32_t)readCR2());
+    sprint("\n", -1, -1);
+}
 
         if(vector == 33) {
 

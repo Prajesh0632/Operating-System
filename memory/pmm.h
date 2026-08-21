@@ -7,6 +7,10 @@
 #define PAGE_SIZE 4096
 #define MAX_FRAMES 262144 // for upto 1GB RAM
 
+extern char _kernel_start[];
+extern char _kernel_end[];
+
+
 extern uint32_t frames;
 extern uint8_t bitmap[MAX_FRAMES];
 
