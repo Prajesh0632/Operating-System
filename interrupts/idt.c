@@ -12,6 +12,7 @@ static idtr_t idtr;
 static bool vectors[MAX_INTR];
 
 
+extern void isr128();
 extern void* isr_stub_table[];
 
 
@@ -34,6 +35,7 @@ void init_idt() {
         
     }
 
+    idt_set_descriptor(0x80, isr128, 0xEE);
     
 
     PIC_remap(0x20, 0x28);   // remap IRQ0-7 -> 32-39, IRQ8-15 -> 40-47
@@ -80,9 +82,22 @@ void handle_interrupt(int vector, int error_code) {
            
         } 
 
-        if(vector >= 32) send_EOI(vector - 32);
- 
-  
+
+        if(vector >= 32 && vector <= 47) send_EOI(vector - 32);
+
+
+}
+
+
+void handle_syscall(int type, int value) {
+
+    sprint("type : ", -1, -1);
+    iprint(type);
+    sprint("\n", -1, -1);
+    sprint("value: ", -1, -1);
+    iprint(value);
+    sprint("\n", -1, -1);
+
 }
 
 

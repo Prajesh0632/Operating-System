@@ -7,6 +7,9 @@ uint32_t* page_directory;
 uint32_t* page_table;
 
 
+void guard_frame(uint32_t frame) {
+    page_table[frame] &= ~1;
+}
 
 void init_paging() {
 
@@ -40,12 +43,15 @@ for(int i = 0; i < page_directory_size ; i++) {
 {
     // As the address is page aligned, it will always leave 12 bits zeroed.
     // Those bits are used by the attributes ;)
-    page_table[i * 1024 + j] = ((i * 1024 + j) * 0x1000) | 7; // attributes: supervisor level, read/write, present.
+    page_table[i * 1024 + j] = ((i * 1024 + j) * PAGE_SIZE) | 7; // attributes: supervisor level, read/write, present.
 }
 
+uint32_t frame = (uint32_t)_kernel_end / PAGE_SIZE;
+guard_frame(frame);   // clear the Present bit for this one frame(If stack ever drops to the _kernel_end to prevent overwtiting the kernel code)
+//raises PF(page fault exception)
 
 // attributes: supervisor level, read/write, present
-page_directory[i] = ((unsigned int)&page_table[i * 1024]) | 3;
+page_directory[i] = ((unsigned int)&page_table[i * 1024]) | 7;
 
 
 }

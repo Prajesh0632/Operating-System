@@ -70,6 +70,15 @@ void init_bitmap() {
         bitmap[start / PAGE_SIZE] = 1;
     }
 
+
+    //mark the space occupied by the stack (stack starts at)
+    uint32_t stack_start = (uint32_t)_kernel_end;
+    uint32_t stack_end = stack_start + 0x200000;   
+    for(uint32_t i = align_down(stack_start); i < align_up(stack_end); i += PAGE_SIZE) {
+        bitmap[i / PAGE_SIZE] = 1;
+    }
+
+
     //also mark 0x0 address as used 
     bitmap[0] = 1;
 

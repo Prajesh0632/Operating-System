@@ -7,8 +7,12 @@ BOOT_FILE="bootloader/boot_kernel.asm"
 KERNEL_ENTRY_FILE="kernel/kernel_entry.asm"
 INTERRUPT="interrupts/interrupt.asm"
 PAGING_ENABLE="memory/enable_paging.asm"
+USER_ENTRY="user_space/user_space_entry.asm"
+
 
 KERNEL_FILE="kernel/kernel.c"
+USER_FILE="user_space/user_program.c"
+
 
 IDT_DESCRIPTOR="interrupts/idt.c"
 SCREEN_DRIVER="screen_driver/screen.c"
@@ -19,6 +23,8 @@ PMM="memory/pmm.c"
 HEAP="memory/heap.c"
 PAGING="memory/paging.c"
 TSS="descriptors/tss.c"
+USER_SWITCH="user_space/switch_user.c"
+
 
 echo "Compiling kernel.c -> kernel.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $KERNEL_FILE -o kernel.o
@@ -49,6 +55,12 @@ echo "Compiling tss.c -> tss.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $TSS -o tss.o
 
 
+echo "Compiling user.c -> user.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $USER_FILE -o user.o
+
+echo "Compiling user_switch.c -> user_switch.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $USER_SWITCH -o user_switch.o
+
 echo "Compiling shell.c -> shell.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $COMMAND_SHELL -o shell.o
 
@@ -65,9 +77,12 @@ nasm -f elf32 $INTERRUPT -o interrupt.o
 echo "Assembling enable_paging.asm -> e_paging.o"
 nasm -f elf32 $PAGING_ENABLE -o e_paging.o
 
+echo "Assembling user_entry.asm -> user_entry.o"
+nasm -f elf32 $USER_ENTRY -o user_entry.o
+
 
 echo "Linking kernel with interrupts at 0x10000 -> kernel.bin"
-ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o memory.o heap.o e_paging.o paging.o tss.o -o kernel.bin
+ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o memory.o heap.o e_paging.o paging.o tss.o user.o user_entry.o user_switch.o -o kernel.bin
 
 
 

@@ -1,6 +1,17 @@
 [bits 32]
 
 extern handle_interrupt
+extern handle_syscall
+
+global isr128
+isr128:
+    pusha
+    push ebx 
+    push eax 
+    call handle_syscall
+    add esp, 8
+    popa
+    iret
 
 ; Macro for interrupts WITHOUT a CPU error code
 %macro isr_no_err_stub 1
