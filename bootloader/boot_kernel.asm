@@ -20,6 +20,11 @@ KERNEL_LOC equ 0x10000
 
     call detect_memory
 
+
+    in  al, 0x92 ; Enable the A20 line 
+    or  al, 0x02
+    out 0x92, al
+
     call switch_to_32_bit_protected
 
 
@@ -66,7 +71,7 @@ load_kernel:
 
 
 msg_rm : db "Booted into Real 16 bit-mode", 0
-msg_pm : db "Reading Disk..............", 0 
+msg_pm : db "Reading disk", 0 
 
 newline: db 0x0D,0x0A, 0 
 

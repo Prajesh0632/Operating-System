@@ -22,5 +22,4 @@ clear_screen:
 
 %include "print_pm.asm"
 
-success_msg: db "Now entered Protected mode", 0    
 

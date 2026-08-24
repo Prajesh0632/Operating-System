@@ -73,10 +73,10 @@ void handle_interrupt(int vector, int error_code) {
 
         if(vector == 33) {
 
-            if(SHELL_ACTIVE) {
+            
                handle_keyboard();
 
-            }
+            
 
 
            
@@ -91,12 +91,7 @@ void handle_interrupt(int vector, int error_code) {
 
 void handle_syscall(int type, int value) {
 
-    sprint("type : ", -1, -1);
-    iprint(type);
-    sprint("\n", -1, -1);
-    sprint("value: ", -1, -1);
-    iprint(value);
-    sprint("\n", -1, -1);
+   if(type == 0) sprint((char*)value,-1,-1);
 
 }
 

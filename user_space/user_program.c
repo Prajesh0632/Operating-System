@@ -1,10 +1,10 @@
-static inline void sys_write(char c) {
-    asm volatile("int $0x80" :: "a"(0), "b"(c));
-}
+#include "../headers/io/stio.h"
 
 
 void user_prog() {
 
-    sys_write('A');
-    while(1);
+
+    int value = -500;
+    print("I am Prajesh and I have %d rupees.\nHello, World!", value);
+    
 }

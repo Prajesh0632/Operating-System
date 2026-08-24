@@ -24,6 +24,8 @@ HEAP="memory/heap.c"
 PAGING="memory/paging.c"
 TSS="descriptors/tss.c"
 USER_SWITCH="user_space/switch_user.c"
+SYSTEM_CALLS="system/system_calls.c"
+STIO="headers/io/stio.c"
 
 
 echo "Compiling kernel.c -> kernel.o"
@@ -41,7 +43,6 @@ gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $SCREEN_DRIVER -o 
 echo "Compiling io.c -> io.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $PORT_IO -o io.o
 
-
 echo "Compiling pmm.c -> pmm.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $PMM -o memory.o
 
@@ -54,7 +55,6 @@ gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $PAGING -o paging.
 echo "Compiling tss.c -> tss.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $TSS -o tss.o
 
-
 echo "Compiling user.c -> user.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $USER_FILE -o user.o
 
@@ -63,6 +63,12 @@ gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $USER_SWITCH -o us
 
 echo "Compiling shell.c -> shell.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $COMMAND_SHELL -o shell.o
+
+echo "Compiling system_calls.c -> system_calls.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $SYSTEM_CALLS -o system_calls.o
+
+echo "Compiling stio.c -> stio.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $STIO -o stio.o
 
 
 
@@ -82,7 +88,7 @@ nasm -f elf32 $USER_ENTRY -o user_entry.o
 
 
 echo "Linking kernel with interrupts at 0x10000 -> kernel.bin"
-ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o memory.o heap.o e_paging.o paging.o tss.o user.o user_entry.o user_switch.o -o kernel.bin
+ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o memory.o heap.o e_paging.o paging.o tss.o user.o user_entry.o user_switch.o system_calls.o stio.o -o kernel.bin
 
 
 
