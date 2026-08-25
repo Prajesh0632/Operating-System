@@ -43,6 +43,21 @@ void int_to_str(char* int_buffer, int n) {
 }
 
 
+void str_to_int(char* str_buffer, int* n) {
+
+   
+
+    int result = 0;
+    for(int i = 0; str_buffer[i] != '\0'; i++) {
+        result = result * 10 + (str_buffer[i] - 48);
+    }
+
+    *n = result;
+
+
+}
+
+
 
 int print(char* format, ...){
 
@@ -101,5 +116,120 @@ int print(char* format, ...){
    
 
     return index;
+
+}
+
+
+
+int scan(char* format, ...){
+
+
+    va_list args;
+
+
+    int count = 0;
+    int types[1024] = {0};
+
+
+    for(int i = 0; format[i] != '\0'; i++) {
+
+        if(format[i] == '%') {
+            i++;
+
+            if(format[i] == 'd') {
+                types[count++] = 0;
+                
+
+            } 
+
+            else if(format[i] == 'c') {
+                types[count++] = 1;
+            }
+
+            else if(format[i] == 's') {
+                types[count++] = 2;
+                
+            }
+            
+           
+
+            
+        }
+
+       
+    }
+
+
+
+
+    va_start(args, format);
+
+
+
+  
+    
+    int type_idx = 0;
+
+    char line_buffer[1024];
+
+    int index = 0;
+
+
+
+
+    sys_clear();
+    sys_echo_on();
+
+
+    for(;;) {
+
+        if(type_idx == count) break;
+        char c = sys_read();
+        if(c == '\0') continue;
+
+
+        
+        
+        if(type_idx == 0 && (c == ' ' || c == '\n')) {
+
+            int* n = va_arg(args, int*);
+            line_buffer[index] = '\0';
+            str_to_int(line_buffer, n);
+            index = 0;
+            type_idx++;
+            continue;
+        }
+
+        if(type_idx == 1 && (c == ' ' || c == '\n') && index > 0) {
+
+            char* c = (char*)va_arg(args, char*);
+            
+            *c = line_buffer[0];
+            index = 0;
+            type_idx++;
+            continue;
+        }
+
+        line_buffer[index++] = c;
+
+
+
+
+        
+
+
+
+
+
+
+        
+    }
+
+    sys_echo_off();
+
+
+
+    va_end(args);;
+
 
 }

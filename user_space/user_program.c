@@ -3,8 +3,8 @@
 
 void user_prog() {
 
-
-    int value = -500;
-    print("I am Prajesh and I have %d rupees.\nHello, World!", value);
-    
+char c = 'a';
+  print("Enter a Character : ");
+  scan("%c", &c);   
+  print("\nThe character is %c", c); 
 }

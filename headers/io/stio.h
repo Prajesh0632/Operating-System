@@ -2,3 +2,4 @@
 
 
 int print(char*, ...);
+int scan(char*, ...);

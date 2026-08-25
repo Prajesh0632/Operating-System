@@ -4,6 +4,7 @@
 #include "../keyboard_driver/keyboard.h"
 #include "../screen_driver/screen.h"
 #include "../memory/paging.h"
+#include "../system/system_header.h"
 
 
 idt_t interrupts[MAX_INTR];
@@ -74,8 +75,7 @@ void handle_interrupt(int vector, int error_code) {
         if(vector == 33) {
 
             
-               handle_keyboard();
-
+           keyboard_isr();
             
 
 
@@ -91,7 +91,29 @@ void handle_interrupt(int vector, int error_code) {
 
 void handle_syscall(int type, int value) {
 
-   if(type == 0) sprint((char*)value,-1,-1);
+   if(type == SYS_WRITE) sprint((char*)value,-1,-1);
+
+   if(type == SYS_READ) {
+      
+     char *c = (char*)(value);
+     *c = key_dequeue();
+
+
+   
+   }
+
+   if(type == SYS_CLEAR) {
+    clear_ring();
+   }
+
+   if(type == SYS_ECHO_ON) {
+    input = true;
+   }
+
+   if(type == SYS_ECHO_OFF) {
+    input = false;
+   }
+
 
 }
 

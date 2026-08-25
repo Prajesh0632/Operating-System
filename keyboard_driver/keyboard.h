@@ -4,14 +4,16 @@
 #include <stdbool.h>
 
 #define BUFFER_SIZE 256
+#define KEY_MAX 128 
 
 
 void execute_command(char*);
 
 extern bool CAPS_LOCK;
 extern bool SHIFT_PRESS;
-extern char input_buffer[256];
-extern int buffer_index;
+
+extern bool input;
+
 
 
 static const char lower_keyboard_map[] = {
@@ -32,5 +34,7 @@ static const char lower_keyboard_map[] = {
 
 
 
-  bool handle_keyboard(void);
-  char get_pressed_char(void);
+  void keyboard_isr();
+  char key_dequeue();
+  void clear_ring();
+  char get_pressed_char();

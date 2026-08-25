@@ -7,61 +7,61 @@
 
 bool CAPS_LOCK;
 bool SHIFT_PRESS;
-char input_buffer[256];
-int buffer_index;
+bool input = false;
+
+  
+static volatile char ring_queue[KEY_MAX];
+static volatile int head = 0;//only keyboard isr writes to it
+static volatile int tail = 0;//only syscall for write can write to it
 
 
-
-bool handle_keyboard() {
-
+void keyboard_isr() {
     char c = get_pressed_char();
-    if(c == 0) return false;
+    if(c == 0) return;
 
-    if(c == '\b') {
-       
-        if(buffer_index > 0) {
-            buffer_index--;
-            input_buffer[buffer_index] = '\0';
-            
-            sprint("\b\0", -1, -1);
-        }
+    int next_head = (head + 1) % KEY_MAX;
 
-        
+    if (next_head != tail) {
+        ring_queue[head] = c;
+        head = next_head;
+    }
+
+    if(input) {
+
+     char s[2] = {c, '\0'};
+     sprint(s, -1, -1);
 
 
     }
-
-    else if(c == '\n') {
-          input_buffer[buffer_index] = '\0';
-          buffer_index = 0;
-
-          sprint("\n\0", -1, -1);
-
-
-          
-          execute_command(input_buffer);
-          sprint("kernel>",-1,-1);
-
-
-
-         return true;
-
-    }
+   
     
-    else if(buffer_index < BUFFER_SIZE - 1) {
-        input_buffer[buffer_index++] = c;
-        
-        char s[2] = {c, '\0'};
-        sprint(s, -1, -1);
-    }
-
-
-    return false;
+  
     
+}
 
-    
+
+
+void clear_ring() {
+    __asm__ volatile("cli");
+    head = 0;
+    tail = 0;
+    __asm__ volatile("sti");
 
 }
+
+
+char key_dequeue() {
+    
+    if(tail == head) return '\0';
+    char c = ring_queue[tail];
+    tail = (tail + 1) % KEY_MAX;
+
+    return c;
+
+}
+
+
+
 
 char get_pressed_char() {
     uint8_t key_code = port_byte_in(0x60);
@@ -83,8 +83,8 @@ char get_pressed_char() {
 
 
 
-             
-                return !press ? lower_keyboard_map[key_code] : upper_keyboard_map[key_code];
+                char key = !press ? lower_keyboard_map[key_code] : upper_keyboard_map[key_code];
+                return key;
             
             
 
