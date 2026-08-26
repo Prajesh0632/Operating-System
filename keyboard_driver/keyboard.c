@@ -7,7 +7,6 @@
 
 bool CAPS_LOCK;
 bool SHIFT_PRESS;
-bool input = false;
 
   
 static volatile char ring_queue[KEY_MAX];
@@ -26,13 +25,7 @@ void keyboard_isr() {
         head = next_head;
     }
 
-    if(input) {
-
-     char s[2] = {c, '\0'};
-     sprint(s, -1, -1);
-
-
-    }
+    
    
     
   
@@ -51,7 +44,7 @@ void clear_ring() {
 
 
 char key_dequeue() {
-    
+
     if(tail == head) return '\0';
     char c = ring_queue[tail];
     tail = (tail + 1) % KEY_MAX;

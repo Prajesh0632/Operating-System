@@ -106,14 +106,7 @@ void handle_syscall(int type, int value) {
     clear_ring();
    }
 
-   if(type == SYS_ECHO_ON) {
-    input = true;
-   }
-
-   if(type == SYS_ECHO_OFF) {
-    input = false;
-   }
-
+   
 
 }
 

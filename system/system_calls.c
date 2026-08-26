@@ -25,16 +25,3 @@ void sys_clear() {
 }
 
 
-void sys_echo_on() {
-
- asm volatile("int $0x80" :: "a"(SYS_ECHO_ON), "b"(0));
-
-
-}
-
-void sys_echo_off() {
-
- asm volatile("int $0x80" :: "a"(SYS_ECHO_OFF), "b"(0));
-
-
-}

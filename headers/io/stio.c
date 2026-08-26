@@ -128,7 +128,7 @@ int scan(char* format, ...){
 
 
     int count = 0;
-    int types[1024] = {0};
+    int types[100] = {0};
 
 
     for(int i = 0; format[i] != '\0'; i++) {
@@ -170,27 +170,34 @@ int scan(char* format, ...){
     
     int type_idx = 0;
 
-    char line_buffer[1024];
+    char line_buffer[128];
 
     int index = 0;
 
 
 
 
-    sys_clear();
-    sys_echo_on();
+    sys_clear(); //clears the keyboard buffer and starts fresh after scanf
 
+
+    int input_count = 0;
 
     for(;;) {
 
         if(type_idx == count) break;
         char c = sys_read();
         if(c == '\0') continue;
+        if(c == '\b') {
 
+            if(input_count == 0) continue;
+            else input_count--;
+        }
+        char s[2] = {c, '\0'};
+        sys_write(s);
 
         
         
-        if(type_idx == 0 && (c == ' ' || c == '\n')) {
+        if(types[type_idx] == 0 && (c == ' ' || c == '\n')) {
 
             int* n = va_arg(args, int*);
             line_buffer[index] = '\0';
@@ -200,9 +207,9 @@ int scan(char* format, ...){
             continue;
         }
 
-        if(type_idx == 1 && (c == ' ' || c == '\n') && index > 0) {
+        if(types[type_idx] == 1 && (c == ' ' || c == '\n') && index > 0) {
 
-            char* c = (char*)va_arg(args, char*);
+            char* c = (char*)va_arg(args, int*);
             
             *c = line_buffer[0];
             index = 0;
@@ -210,7 +217,24 @@ int scan(char* format, ...){
             continue;
         }
 
+        if(types[type_idx] == 2 && (c == '\n')) {
+            char* s = (char*)va_arg(args, char*);
+            line_buffer[index] = '\0';
+            for(int i = 0; line_buffer[i] != '\0'; i++) {
+                s[i] = line_buffer[i];
+            }
+
+            s[index] = '\0';
+            index = 0;
+            type_idx++;
+            input_count = 0;
+            continue;
+        }
+
+        
         line_buffer[index++] = c;
+        if( c != '\b')input_count++;
+
 
 
 
@@ -225,7 +249,6 @@ int scan(char* format, ...){
         
     }
 
-    sys_echo_off();
 
 
 

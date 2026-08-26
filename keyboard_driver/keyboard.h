@@ -12,7 +12,6 @@ void execute_command(char*);
 extern bool CAPS_LOCK;
 extern bool SHIFT_PRESS;
 
-extern bool input;
 
 
 

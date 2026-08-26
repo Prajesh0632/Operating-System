@@ -3,8 +3,10 @@
 
 void user_prog() {
 
-char c = 'a';
-  print("Enter a Character : ");
-  scan("%c", &c);   
-  print("\nThe character is %c", c); 
+  char c[30];
+  char s;
+  int n;
+ print("Enter your name : " );
+ scan("%s", c);
+ print("Your name is %s", c);
 }
