@@ -1,6 +1,5 @@
 #include "idt.h"
 #include "../port_io/io.h"
-#include "../command_shell/shell.h"
 #include "../keyboard_driver/keyboard.h"
 #include "../screen_driver/screen.h"
 #include "../memory/paging.h"
@@ -104,6 +103,11 @@ void handle_syscall(int type, int value) {
 
    if(type == SYS_CLEAR) {
     clear_ring();
+   }
+
+
+   if(type == SYS_SCLEAR) {
+    cls();
    }
 
    

@@ -124,7 +124,6 @@ int print(char* format, ...){
 int scan(char* format, ...){
 
 
-    va_list args;
 
 
     int count = 0;
@@ -162,7 +161,6 @@ int scan(char* format, ...){
 
 
 
-    va_start(args, format);
 
 
 
@@ -181,6 +179,10 @@ int scan(char* format, ...){
 
 
     int input_count = 0;
+
+    va_list args;
+    va_start(args, format);
+
 
     for(;;) {
 

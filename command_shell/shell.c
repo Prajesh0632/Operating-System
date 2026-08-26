@@ -1,10 +1,9 @@
+#include "../system/system_calls.h"
 #include "shell.h"
-#include "../screen_driver/screen.h"
-#include "../memory/pmm.h"
 
-bool SHELL_ACTIVE = true;
-volatile bool executed = true;
-
+char shell_buffer[128];
+int shell_index = 0;
+int shell_input_count = 0;
 
 
 int strcmp(const char* s1, const char* s2) {
@@ -13,7 +12,6 @@ int strcmp(const char* s1, const char* s2) {
         s1++;
         s2++;
     }
-
     
     return (unsigned char)*s1 - (unsigned char)*s2;
 
@@ -21,35 +19,87 @@ int strcmp(const char* s1, const char* s2) {
 }
 
 
+void shell_main() {
+
+    sys_write("User> ");
+
+    bool exit = false;
+    while(!exit) {
+
+    char c = sys_read();
+    if(c == '\0') continue;
+    
+    if(c == '\b') {
+        if(shell_input_count == 0) continue;
+        shell_input_count--;
+    }
+
+    char s[2] = {c, '\0'};
+    sys_write(s);
+    
+
+    if(c == '\n') {
+        shell_buffer[shell_index] = '\0';
+        exit =  execute_command(shell_buffer);
+
+        shell_index = 0;
+        shell_input_count = 0;
+        if(exit) break;
+        
+    }
+
+    else if(c == '\b') {
+        
+        if(shell_index != 0) shell_index--;
+    }
+
+    else {
+        shell_buffer[shell_index++] = c;
+        shell_input_count++;
+    }
+    
 
 
-void execute_command(char* command) {
+    }
+    
+   
+
+
+}
+
+
+
+bool execute_command(char* command) {
 
     if(strcmp(command, "clear") == 0) 
     {
-        cls();
+        sys_sclear();
     }
 
     else if(strcmp(command, "-help") == 0) {
 
-        sprint("clear : clears the screen\n", -1, -1);
-        sprint("bitmap : size of 1 unit of physical memory\n", -1, -1);
+        sys_write("clear : clears the screen\n");
+        sys_write("exit  : exit the command line\n");
     }
 
-    else if(strcmp(command, "bitmap") == 0) {
-
-        sprint("Bitmap Size : ", -1, -1);
-        iprint(frames / (1024 * 8));
-        sprint(" KB\n", -1, -1);
+    else if(strcmp(command, "exit") == 0) {
+        sys_write("Shell Successfully exited\n");
+        return true;
 
     }
+
+  
 
     else {
 
-        sprint("No command Found for ", -1, -1);
-        sprint(command, -1, -1);
-        sprint("\n", -1,-1);
-        sprint("Use -help command for more information.\n", -1, -1);
+        sys_write("No command Found for ");
+        sys_write(command);
+        sys_write("\n");
+        sys_write("Use -help command for more information.\n");
     }
+
+    sys_write("User> ");
+
+    return false;
 
 }

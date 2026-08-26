@@ -25,3 +25,9 @@ void sys_clear() {
 }
 
 
+void sys_sclear() {
+   
+        asm volatile("int $0x80" :: "a"(SYS_SCLEAR), "b"(0));
+
+
+}
