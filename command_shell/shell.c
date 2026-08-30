@@ -1,4 +1,5 @@
 #include "../system/system_calls.h"
+#include "../headers/string/str.h"
 #include "shell.h"
 
 char shell_buffer[128];
@@ -6,17 +7,7 @@ int shell_index = 0;
 int shell_input_count = 0;
 
 
-int strcmp(const char* s1, const char* s2) {
-   
-    while(*s1 && (*s1 == *s2)) {
-        s1++;
-        s2++;
-    }
-    
-    return (unsigned char)*s1 - (unsigned char)*s2;
 
-
-}
 
 
 void shell_main() {

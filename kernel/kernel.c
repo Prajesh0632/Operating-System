@@ -7,7 +7,7 @@
 #include "../descriptors/tss.h"
 #include "../user_space/user_program.h"
 #include "../user_space/switch_user.h"
-
+#include "../file_system/ata.h"
 
 void start_user_program(uint32_t entry_point) {
    
@@ -33,45 +33,30 @@ void main() {
     init_idt();
     init_paging();
     init_tss((uint32_t)(_kernel_end + 0x200000));
-    start_user_program((uint32_t)user_prog);
+     
+    uint32_t lba = 0;
+    uint16_t* buffer = halloc(256 * 16);
+    for(int i = 0; i < 256; i++) {
+        buffer[i] = i;
+    }
+    // ata_write_sector(lba, buffer);
 
-    
+    ata_read_sector(lba, buffer);
 
-    sprint("Paging Enabled\n", -1, -1);
-  
+    for(int i = 0; i < 256; i++) {
 
-   
-
-
-   
-
-
-    
-
-
-
-
-
-    
-
-    
-    
-    
-
-    
-    sprint("kernel>", -1, -1);
-    while(true) {
-        asm volatile("hlt"); // sleep until next interrupt
+        iprint((int)buffer[i]);
+        sprint(" ",-1,-1);
     }
 
- 
-
-   
 
 
+
+    // start_user_program((uint32_t)user_prog);
 
     
-    
+
+
     
 }
 

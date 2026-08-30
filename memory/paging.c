@@ -16,6 +16,8 @@ void init_paging() {
     page_directory = (uint32_t*)(uintptr_t)fralloc(1024 * 4);
     page_table = (uint32_t*)(uintptr_t)fralloc(((frames + 1023) / 1024) * 1024 * 4);
 
+    
+
 
     
 

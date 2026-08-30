@@ -2,6 +2,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+
 # Build kernel, write into boot.img (sector 1), and run QEMU with serial
 BOOT_FILE="bootloader/boot_kernel.asm"
 KERNEL_ENTRY_FILE="kernel/kernel_entry.asm"
@@ -18,7 +19,6 @@ IDT_DESCRIPTOR="interrupts/idt.c"
 SCREEN_DRIVER="screen_driver/screen.c"
 KEYBOARD_DRIVER="keyboard_driver/keyboard.c"
 PORT_IO="port_io/io.c"
-COMMAND_SHELL="command_shell/shell.c"
 PMM="memory/pmm.c"
 HEAP="memory/heap.c"
 PAGING="memory/paging.c"
@@ -26,6 +26,10 @@ TSS="descriptors/tss.c"
 USER_SWITCH="user_space/switch_user.c"
 SYSTEM_CALLS="system/system_calls.c"
 STIO="headers/io/stio.c"
+STRING="headers/string/str.c"
+COMMAND_SHELL="command_shell/shell.c"
+DISK_RW="file_system/ata.c"
+
 
 
 echo "Compiling kernel.c -> kernel.o"
@@ -55,6 +59,9 @@ gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $PAGING -o paging.
 echo "Compiling tss.c -> tss.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $TSS -o tss.o
 
+echo "Compiling ata.c -> ata.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $DISK_RW -o ata.o
+
 echo "Compiling user.c -> user.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $USER_FILE -o user.o
 
@@ -69,6 +76,9 @@ gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $SYSTEM_CALLS -o s
 
 echo "Compiling stio.c -> stio.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $STIO -o stio.o
+
+echo "Compiling str.c -> str.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $STRING -o str.o
 
 
 
@@ -88,7 +98,7 @@ nasm -f elf32 $USER_ENTRY -o user_entry.o
 
 
 echo "Linking kernel with interrupts at 0x10000 -> kernel.bin"
-ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o memory.o heap.o e_paging.o paging.o tss.o user.o user_entry.o user_switch.o system_calls.o stio.o -o kernel.bin
+ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o memory.o heap.o e_paging.o paging.o tss.o user.o user_entry.o user_switch.o system_calls.o stio.o str.o ata.o -o kernel.bin
 
 
 
@@ -101,5 +111,18 @@ dd if=kernel.bin of=boot.img bs=512 seek=1 conv=notrunc
 
 truncate -s 1474560 boot.img
 
+# Hard disk image: primary IDE master (ports 0x1F0/0x3F6) for file_system/ata.c
+# Created once and kept across builds so its contents survive.
+HDD_FILE="hdd.img"
+HDD_SIZE=16M
+
+if [ ! -f "$HDD_FILE" ]; then
+    echo "Creating $HDD_FILE ($HDD_SIZE, raw)"
+    qemu-img create -f raw "$HDD_FILE" "$HDD_SIZE"
+fi
+
 echo "Launching QEMU (serial to stdio)"
-env -i HOME="$HOME" DISPLAY="$DISPLAY" XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}" /usr/bin/qemu-system-i386 -m 1024 -drive file=boot.img,format=raw,index=0,if=floppy -no-reboot
+env -i HOME="$HOME" DISPLAY="$DISPLAY" XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}" /usr/bin/qemu-system-i386 -m 1024 \
+    -drive file=boot.img,format=raw,index=0,if=floppy \
+    -drive file="$HDD_FILE",format=raw,if=ide,index=0,media=disk \
+    -no-reboot
