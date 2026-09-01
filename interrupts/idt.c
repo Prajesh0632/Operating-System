@@ -4,6 +4,7 @@
 #include "../screen_driver/screen.h"
 #include "../memory/paging.h"
 #include "../system/system_header.h"
+#include "../file_system/fat16.h"
 
 
 idt_t interrupts[MAX_INTR];
@@ -108,6 +109,13 @@ void handle_syscall(int type, int value) {
 
    if(type == SYS_SCLEAR) {
     cls();
+   }
+
+
+   if(type == SYS_FLIST) {
+
+    list_dir(value);
+
    }
 
    

@@ -64,4 +64,4 @@ _Static_assert(sizeof(DirEntry) == 32, "FAT16 dir entry must be 32 bytes");
 
 
 void init_fat16();
-void read_directory();
+void list_dir(uint32_t);

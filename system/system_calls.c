@@ -31,3 +31,11 @@ void sys_sclear() {
 
 
 }
+
+
+
+void sys_flist(uint32_t cluster) {
+
+    asm volatile("int $0x80" :: "a"(SYS_FLIST), "b"(cluster));
+
+}

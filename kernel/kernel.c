@@ -34,14 +34,13 @@ void main() {
     init_paging();
     init_tss((uint32_t)(_kernel_end + 0x200000));
     init_fat16();
-    read_directory();
      
    
 
 
 
 
-    // start_user_program((uint32_t)user_prog);
+    start_user_program((uint32_t)user_prog);
 
     
 

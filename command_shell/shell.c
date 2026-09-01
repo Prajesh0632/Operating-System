@@ -1,6 +1,7 @@
 #include "../system/system_calls.h"
 #include "../headers/string/str.h"
 #include "shell.h"
+#include <stdint.h>
 
 char shell_buffer[128];
 int shell_index = 0;
@@ -8,11 +9,12 @@ int shell_input_count = 0;
 
 
 
-
+char* current_directory = "root>";
+uint32_t current_cluster = 0;
 
 void shell_main() {
 
-    sys_write("User> ");
+    sys_write(current_directory);
 
     bool exit = false;
     while(!exit) {
@@ -69,8 +71,17 @@ bool execute_command(char* command) {
 
     else if(strcmp(command, "-help") == 0) {
 
+        sys_write("ls    : lists all files and directories within current directory\n");
         sys_write("clear : clears the screen\n");
         sys_write("exit  : exit the command line\n");
+
+    }
+
+
+    else if(strcmp(command, "ls") == 0) {
+         
+        sys_flist(current_cluster);
+
     }
 
     else if(strcmp(command, "exit") == 0) {
@@ -89,7 +100,7 @@ bool execute_command(char* command) {
         sys_write("Use -help command for more information.\n");
     }
 
-    sys_write("User> ");
+    sys_write(current_directory);
 
     return false;
 
