@@ -29,6 +29,7 @@ STIO="headers/io/stio.c"
 STRING="headers/string/str.c"
 COMMAND_SHELL="command_shell/shell.c"
 DISK_RW="file_system/ata.c"
+FAT16="file_system/fat16.c"
 
 
 
@@ -61,6 +62,9 @@ gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $TSS -o tss.o
 
 echo "Compiling ata.c -> ata.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $DISK_RW -o ata.o
+
+echo "Compiling fat16.c -> fat16.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $FAT16 -o fat16.o
 
 echo "Compiling user.c -> user.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $USER_FILE -o user.o
@@ -98,7 +102,7 @@ nasm -f elf32 $USER_ENTRY -o user_entry.o
 
 
 echo "Linking kernel with interrupts at 0x10000 -> kernel.bin"
-ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o memory.o heap.o e_paging.o paging.o tss.o user.o user_entry.o user_switch.o system_calls.o stio.o str.o ata.o -o kernel.bin
+ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o memory.o heap.o e_paging.o paging.o tss.o user.o user_entry.o user_switch.o system_calls.o stio.o str.o ata.o fat16.o -o kernel.bin
 
 
 
@@ -112,17 +116,19 @@ dd if=kernel.bin of=boot.img bs=512 seek=1 conv=notrunc
 truncate -s 1474560 boot.img
 
 # Hard disk image: primary IDE master (ports 0x1F0/0x3F6) for file_system/ata.c
-# Created once and kept across builds so its contents survive.
-HDD_FILE="hdd.img"
-HDD_SIZE=16M
+# Pre-formatted FAT16 volume, kept across builds so its contents survive.
+HDD_FILE="fat16_disk.img"
 
 if [ ! -f "$HDD_FILE" ]; then
-    echo "Creating $HDD_FILE ($HDD_SIZE, raw)"
-    qemu-img create -f raw "$HDD_FILE" "$HDD_SIZE"
+    echo "error: $HDD_FILE not found. Recreate it with:" >&2
+    echo "    dd if=/dev/zero of=$HDD_FILE bs=1M count=32" >&2
+    echo "    mkfs.fat -F 16 -n MYOS_DISK $HDD_FILE" >&2
+    exit 1
 fi
 
 echo "Launching QEMU (serial to stdio)"
 env -i HOME="$HOME" DISPLAY="$DISPLAY" XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}" /usr/bin/qemu-system-i386 -m 1024 \
+    -boot order=a \
     -drive file=boot.img,format=raw,index=0,if=floppy \
     -drive file="$HDD_FILE",format=raw,if=ide,index=0,media=disk \
     -no-reboot

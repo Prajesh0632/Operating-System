@@ -35,7 +35,7 @@ void port_word_out(uint16_t port, uint16_t data) {
 }
 
 
-uint8_t port_word_in(uint16_t port) {
+uint16_t port_word_in(uint16_t port) {
 
 
     uint16_t result;
