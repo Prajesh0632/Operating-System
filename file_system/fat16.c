@@ -155,21 +155,25 @@ void display_file(DirEntry* file) {
     uint32_t lba, sector_count;
 
     uint16_t cluster = file->low_cluster;
+    uint32_t remaining = file->size;
 
 
-    while(cluster >= 0x0002 && cluster < 0xFFF8) {
+    while(remaining > 0 && cluster >= 0x0002 && cluster < 0xFFF8) {
        
         dir_location(cluster, &lba, &sector_count);
 
-        for(uint32_t s = 0; s < sector_count; s++) {
+
+        for(uint32_t s = 0; s < sector_count && remaining > 0; s++) {
               
             ata_read_sector(lba + s, buffer);
             uint8_t* content = (uint8_t*)buffer;
 
-            uint32_t size = (file->size < bytes_per_sector) ? file->size : bytes_per_sector;
+            uint32_t size = (remaining < bytes_per_sector) ? remaining : bytes_per_sector;
             for(uint32_t i = 0; i < size; i++) {
                 cprint(content[i]);
             }
+
+            remaining -= size;
 
         }
 
@@ -193,8 +197,9 @@ void print_file(char* filename, uint16_t cluster) {
     uint16_t buffer[256];
 
     uint32_t lba, sector_count;
-    DirEntry* file = NULL;
+    DirEntry file;
 
+     bool file_found = false;
 
 
      while(cluster == 0 || (cluster >= 0x0002 && cluster < 0xFFF8)) {
@@ -204,7 +209,7 @@ void print_file(char* filename, uint16_t cluster) {
 
         dir_location(cluster, &lba, &sector_count);
         bool end_of_dir = false;
-        bool file_found = false;
+       
 
         
         for(uint32_t s = 0; s < sector_count; s++) {
@@ -231,7 +236,7 @@ void print_file(char* filename, uint16_t cluster) {
             if(strcmp(name, filename) == 0) {
                   
                 file_found = true;
-                file = &e[i];
+                file = e[i];
                 break;
 
 
@@ -259,8 +264,8 @@ void print_file(char* filename, uint16_t cluster) {
     }
 
 
-    if(file != NULL) {
-       display_file(file);
+    if(file_found) {
+       display_file(&file);
     }
     else {
         sprint("No such file found\n", -1, -1);
