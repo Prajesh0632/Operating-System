@@ -9,5 +9,6 @@
 
 //FILE SYSTEM CALLS 
 #define SYS_FLIST 4
+#define SYS_FPRINT 5
 
 

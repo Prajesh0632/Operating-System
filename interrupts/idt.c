@@ -89,7 +89,7 @@ void handle_interrupt(int vector, int error_code) {
 }
 
 
-void handle_syscall(int type, int value) {
+void handle_syscall(int type, int value, int extra) {
 
    if(type == SYS_WRITE) sprint((char*)value,-1,-1);
 
@@ -116,6 +116,11 @@ void handle_syscall(int type, int value) {
 
     list_dir(value);
 
+   }
+
+
+   if(type == SYS_FPRINT) {
+    print_file((char*)value, (uint16_t)extra);
    }
 
    

@@ -6,10 +6,11 @@ extern handle_syscall
 global isr128
 isr128:
     pusha
-    push ebx 
-    push eax 
+    push ecx        ; arg3
+    push ebx        ; arg2
+    push eax        ; arg1 -- pushed last, so it lands first
     call handle_syscall
-    add esp, 8
+    add esp, 12
     popa
     iret
 

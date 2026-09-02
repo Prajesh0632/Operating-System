@@ -34,8 +34,16 @@ void sys_sclear() {
 
 
 
-void sys_flist(uint32_t cluster) {
+void sys_flist(uint16_t cluster) {
 
     asm volatile("int $0x80" :: "a"(SYS_FLIST), "b"(cluster));
+
+}
+
+
+void sys_fprint(uint16_t cluster, char* filename) {
+
+    asm volatile("int $0x80" :: "a"(SYS_FPRINT), "b"(filename), "c"(cluster));
+
 
 }

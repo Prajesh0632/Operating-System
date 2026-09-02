@@ -7,4 +7,5 @@ char sys_read();
 void sys_clear();
 void sys_sclear();
 
-void sys_flist(uint32_t);
+void sys_flist(uint16_t);
+void sys_fprint(uint16_t, char*);

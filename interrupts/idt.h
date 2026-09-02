@@ -70,7 +70,7 @@ void PIC_remap(int, int);
 
 void handle_interrupt(int, int);
 
-void handle_syscall(int, int);
+void handle_syscall(int, int, int);
 
 
 void send_EOI(uint8_t);

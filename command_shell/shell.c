@@ -1,7 +1,9 @@
 #include "../system/system_calls.h"
 #include "../headers/string/str.h"
 #include "shell.h"
+#include <stddef.h>
 #include <stdint.h>
+
 
 char shell_buffer[128];
 int shell_index = 0;
@@ -10,7 +12,7 @@ int shell_input_count = 0;
 
 
 char* current_directory = "root>";
-uint32_t current_cluster = 0;
+uint16_t current_cluster = 0;
 
 void shell_main() {
 
@@ -64,6 +66,28 @@ void shell_main() {
 
 bool execute_command(char* command) {
 
+    char* args = NULL;
+    
+    for(int i = 0; command[i] != '\0'; i++) {
+
+        if(command[i] == ' ') {
+            command[i] = '\0';
+            
+            for(int j = 0; command[i + j + 1] != '\0'; j++) {
+                if(command[i+j+1] != ' ') {
+                     args = &command[i+j+1];
+                     break;
+                }
+            }
+
+            break;
+        }
+          
+    }
+
+
+   
+
     if(strcmp(command, "clear") == 0) 
     {
         sys_sclear();
@@ -71,7 +95,10 @@ bool execute_command(char* command) {
 
     else if(strcmp(command, "-help") == 0) {
 
-        sys_write("ls    : lists all files and directories within current directory\n");
+        sys_write("ls    : lists all files and directories within the current directory\n");
+        sys_write("cat   : print a file within the current directory\n");
+
+
         sys_write("clear : clears the screen\n");
         sys_write("exit  : exit the command line\n");
 
@@ -90,9 +117,27 @@ bool execute_command(char* command) {
 
     }
 
-  
+    else if(strcmp(command, "cat") == 0) {
+
+        if(args == NULL){
+         sys_write("Cannot display empty file\n");
+         sys_write(current_directory);
+         return false;
+
+
+        }
+
+        sys_fprint(current_cluster, args);
+    }
+
+
+
 
     else {
+         
+
+          
+
 
         sys_write("No command Found for ");
         sys_write(command);
