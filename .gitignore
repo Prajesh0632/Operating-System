@@ -2,6 +2,27 @@
 *.bin
 *.img
 *.o
+*.elf
+*.iso
+*.map
+*.lst
+*.sym
+
+# Disk image backups
+*.bak
+*.img.bak
+
+# Editor / OS noise
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
+.DS_Store
+
+# Debug output
+*.log
+serial.log
 
 
 # Reference material
