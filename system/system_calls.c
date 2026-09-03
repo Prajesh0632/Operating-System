@@ -55,3 +55,16 @@ void sys_fcreate(uint16_t cluster, char* filename) {
 
 
 }
+
+
+
+void sys_fdelete(uint16_t cluster, char* filename) {
+
+        asm volatile("int $0x80" :: "a"(SYS_FDELETE), "b"(filename), "c"(cluster));
+
+
+}
+
+
+
+

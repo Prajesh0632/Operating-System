@@ -155,7 +155,7 @@ uint16_t get_free_cluster() {
 
         for(uint32_t i = 0; i < 256; i++) {
 
-            uint32_t c = s * 266 + i;
+            uint32_t c = s * 256 + i;
 
             if(c < 2) continue; // slots 0 and 1 aren't clusters
 
@@ -388,7 +388,8 @@ void create_file(char* filename, uint16_t cluster) {
     uint32_t free_lba = 0, free_index = 0;
     bool found = false;
 
-       
+    while(cluster == 0 || (cluster >= 0x0002 && cluster < 0xFFF8)) {
+
         dir_location(cluster, &lba, &sector_count);
 
         for(uint32_t s = 0; s < sector_count && !found; s++) {
@@ -420,8 +421,8 @@ void create_file(char* filename, uint16_t cluster) {
 
 
         if(!found) {
-            sprint("Directory is full\n", -1, -1);
-            return;
+            cluster = get_next_cluster(cluster);
+            continue;
         }
 
     
@@ -443,7 +444,17 @@ void create_file(char* filename, uint16_t cluster) {
 
      ata_write_sector(free_lba, buffer);
 
+     
+     
 
+    }
+       
+
+    if(!found) {
+        sprint("Directory is full. Free some space before creating a file\n", -1, -1);
+        
+    }
+        
    
     
 
@@ -452,3 +463,92 @@ void create_file(char* filename, uint16_t cluster) {
 
 
 }
+
+
+
+void delete_file(char* filename, uint16_t cluster) {
+
+    uint16_t buffer[256];
+
+    uint32_t lba, sector_number;
+    bool found = false;
+    uint32_t file_lba, file_index;
+
+
+    char fname[11];
+    set_filename(fname, filename);
+
+
+    //get file 
+    while(cluster == 0 || (cluster >= 0x0002 && cluster < 0xFFF8)) {
+
+        dir_location(cluster, &lba, &sector_number);
+
+        for(uint32_t s = 0; s < sector_number & !found; s++) {
+
+            ata_read_sector(lba + s, buffer);
+
+            DirEntry* e = (DirEntry*)buffer;
+
+            for(uint32_t i = 0; i < dir_per_sector; i++) {
+
+            bool same = true;
+            for (int k = 0; k < 11; k++)
+                if (e[i].name[k] != (uint8_t)fname[k]) { same = false; break; }
+
+            if(same) {
+                found = true;
+                file_lba = lba + s;
+                file_index = i;
+                break;
+            }    
+
+     }
+
+
+     
+
+
+                    
+
+
+            }
+
+
+            if(found)break;
+
+            cluster = get_next_cluster(cluster);
+
+        }
+
+
+
+        if(!found) {
+            sprint("File not found\n", -1, -1);
+            return;
+        }
+
+       
+
+        //delete file 
+
+        ata_read_sector(file_lba, buffer);
+
+        DirEntry* e = (DirEntry*)buffer;
+
+        DirEntry* file = &e[file_index];
+
+        
+
+
+
+
+
+
+
+    
+
+    }
+
+        
+

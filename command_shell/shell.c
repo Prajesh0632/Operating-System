@@ -95,9 +95,11 @@ bool execute_command(char* command) {
 
     else if(strcmp(command, "-help") == 0) {
 
-        sys_write("ls    : lists all files and directories within the current directory\n");
-        sys_write("cat   : print a file within the current directory\n");
-        sys_write("touch : create an empty file within the current directory\n");
+        sys_write("ls : lists all files and directories within the current directory\n");
+        sys_write("cat <filename> : print a file within the current directory\n");
+        sys_write("touch <filename> : create an empty file within the current directory\n");
+        sys_write("delete <filename> : delete the file within the current directory\n");
+
 
 
 
@@ -146,6 +148,20 @@ bool execute_command(char* command) {
         sys_fcreate(current_cluster, args);
 
 
+
+    }
+
+    else if(strcmp(command, "delete") == 0) {
+
+        if(args == NULL){
+         sys_write("Provide a filename to delete\n");
+         sys_write(current_directory);
+         return false;
+
+
+        }
+
+        sys_fdelete(current_cluster, args);
 
     }
 

@@ -123,13 +123,19 @@ void handle_syscall(int type, int value, int extra) {
 
     print_file((char*)value, (uint16_t)extra);
 
-    
+
    }
 
 
    if(type == SYS_FCREATE) {
 
     create_file((char*)value, (uint16_t)extra);
+
+   }
+
+   if(type == SYS_FDELETE) {
+ 
+    delete_file((char*)value, (uint16_t)extra);
 
    }
 
