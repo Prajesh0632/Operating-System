@@ -77,7 +77,7 @@ void set_filename(char* fname, char* name) {
     int dot_index = -1;
 
 
-    for(int i = 0; name[i] != '.' && name[i] != '\0'; i++) {
+    for(int i = 0; name[i] != '.' && name[i] != '\0' && i < 8; i++) {
         char c = name[i];
         if(c >= 'a' && c <= 'z') c -= 32;
         fname[f_index++] = c;
@@ -102,13 +102,7 @@ void set_filename(char* fname, char* name) {
 
     }
 
-    else {
-
-        fname[8] = 'T';
-        fname[9] = 'X';
-        fname[10] = 'T';
-
-    }
+   
     
    
 
@@ -445,6 +439,7 @@ void create_file(char* filename, uint16_t cluster) {
      ata_write_sector(free_lba, buffer);
 
      
+     break;
      
 
     }
@@ -558,7 +553,7 @@ void delete_file(char* filename, uint16_t cluster) {
 
           
           ata_write_sector(lba, temp_buffer);
-          ata_read_sector(lba + sectors_per_fat, temp_buffer);
+          ata_write_sector(lba + sectors_per_fat, temp_buffer);
 
 
 
