@@ -484,7 +484,7 @@ void delete_file(char* filename, uint16_t cluster) {
 
         dir_location(cluster, &lba, &sector_number);
 
-        for(uint32_t s = 0; s < sector_number & !found; s++) {
+        for(uint32_t s = 0; s < sector_number && !found; s++) {
 
             ata_read_sector(lba + s, buffer);
 
@@ -538,7 +538,40 @@ void delete_file(char* filename, uint16_t cluster) {
 
         DirEntry* file = &e[file_index];
 
-        
+
+        cluster = file->low_cluster;
+
+        while(cluster >= 0x0002 && cluster < 0xFFF8) {
+          
+          uint32_t next_cluster = get_next_cluster(cluster);
+
+          uint16_t temp_buffer[256];
+
+
+          uint32_t offset = cluster * 2;
+          uint32_t lba = fat_start + offset / bytes_per_sector;
+
+          ata_read_sector(lba, temp_buffer);
+
+
+          temp_buffer[(offset % bytes_per_sector / 2)] = 0x0000;
+
+          
+          ata_write_sector(lba, temp_buffer);
+          ata_read_sector(lba + sectors_per_fat, temp_buffer);
+
+
+
+          cluster = next_cluster;
+           
+        }
+
+        file->name[0] = 0xE5;
+
+        ata_write_sector(file_lba, buffer);
+
+
+
 
 
 
