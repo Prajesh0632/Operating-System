@@ -97,6 +97,8 @@ bool execute_command(char* command) {
 
         sys_write("ls    : lists all files and directories within the current directory\n");
         sys_write("cat   : print a file within the current directory\n");
+        sys_write("touch : create an empty file within the current directory\n");
+
 
 
         sys_write("clear : clears the screen\n");
@@ -120,7 +122,7 @@ bool execute_command(char* command) {
     else if(strcmp(command, "cat") == 0) {
 
         if(args == NULL){
-         sys_write("Cannot display empty file\n");
+         sys_write("No filename provided\n");
          sys_write(current_directory);
          return false;
 
@@ -128,6 +130,23 @@ bool execute_command(char* command) {
         }
 
         sys_fprint(current_cluster, args);
+    }
+
+
+    else if(strcmp(command, "touch") == 0) {
+
+        if(args == NULL){
+         sys_write("Provide a filename to create\n");
+         sys_write(current_directory);
+         return false;
+
+
+        }
+
+        sys_fcreate(current_cluster, args);
+
+
+
     }
 
 

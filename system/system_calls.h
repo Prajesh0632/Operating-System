@@ -9,3 +9,4 @@ void sys_sclear();
 
 void sys_flist(uint16_t);
 void sys_fprint(uint16_t, char*);
+void sys_fcreate(uint16_t, char*);

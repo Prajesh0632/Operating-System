@@ -120,7 +120,17 @@ void handle_syscall(int type, int value, int extra) {
 
 
    if(type == SYS_FPRINT) {
+
     print_file((char*)value, (uint16_t)extra);
+
+    
+   }
+
+
+   if(type == SYS_FCREATE) {
+
+    create_file((char*)value, (uint16_t)extra);
+
    }
 
    

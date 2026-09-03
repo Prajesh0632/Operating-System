@@ -12,6 +12,8 @@ uint32_t data_start;
 uint32_t dir_per_sector;
 uint32_t sectors_per_cluster;
 uint32_t bytes_per_sector;
+uint32_t sectors_per_fat;
+uint32_t total_clusters;
 
 
 void init_fat16() {
@@ -29,8 +31,16 @@ void init_fat16() {
     root_sectors = (bpb->directories_n * sizeof(DirEntry) + bpb->bytes_per_sector - 1) / (bpb->bytes_per_sector);
     dir_per_sector = bpb->bytes_per_sector / sizeof(DirEntry);
     sectors_per_cluster = bpb->sectors_per_cluster;
+    sectors_per_fat = bpb->sectors_per_fat;
     data_start = root_start + root_sectors;
 
+
+uint32_t total_sectors = bpb->total_sectors_short
+                       ? bpb->total_sectors_short      // 16-bit field
+                       : bpb->total_sectors_large;     // 32-bit, used when short is 0
+
+total_clusters = (total_sectors - data_start) / sectors_per_cluster;
+    
 
 }
 
@@ -51,6 +61,57 @@ void get_filename(char* fname, char* name) {
     }
 
     fname[index] = '\0';
+}
+
+void set_filename(char* fname, char* name) {
+
+
+    for(int i = 0; i < 11; i++) fname[i] = ' ';
+
+    int len = 0;
+    for(int i = 0; name[i] != '\0'; i++)len++;
+
+    
+    int f_index = 0;
+    bool dot_found = false;
+    int dot_index = -1;
+
+
+    for(int i = 0; name[i] != '.' && name[i] != '\0'; i++) {
+        char c = name[i];
+        if(c >= 'a' && c <= 'z') c -= 32;
+        fname[f_index++] = c;
+
+        if(name[f_index] == '.') {
+            dot_found = true;
+            dot_index = f_index;
+
+        }
+    }
+
+
+    if(dot_found) {
+            
+        int index = 10;
+        for(int i = len-1; name[i] != '.'; i-- ) {
+            
+            char c = name[i];
+            if(c >= 'a' && c <= 'z') c -= 32;
+            fname[index--] = c;
+        }
+
+    }
+
+    else {
+
+        fname[8] = 'T';
+        fname[9] = 'X';
+        fname[10] = 'T';
+
+    }
+    
+   
+
 }
 
 void dir_location(uint32_t cluster, uint32_t* lba, uint32_t* sector_count) {
@@ -79,6 +140,39 @@ uint16_t get_next_cluster(uint16_t cluster) {
  return buffer[(offset % bytes_per_sector) / 2];
 
 
+
+}
+
+
+uint16_t get_free_cluster() {
+
+    
+
+    uint16_t buffer[256];
+    
+    for(uint32_t s = 0; s < sectors_per_fat; s++) {
+        ata_read_sector(fat_start + s, buffer);
+
+        for(uint32_t i = 0; i < 256; i++) {
+
+            uint32_t c = s * 266 + i;
+
+            if(c < 2) continue; // slots 0 and 1 aren't clusters
+
+            if(c > total_clusters + 1) return 0; // past the end of the disk
+
+            if(buffer[i] == 0x0000) {
+                buffer[i] = 0xFFFF;
+                ata_write_sector(fat_start + s, buffer);
+                ata_write_sector(fat_start + s + sectors_per_fat, buffer);
+                return c;
+            }
+        }
+
+    }
+
+    return 0; // disk full 
+    
 
 }
 
@@ -194,6 +288,9 @@ void display_file(DirEntry* file) {
 void print_file(char* filename, uint16_t cluster) {
 
 
+    
+
+
     uint16_t buffer[256];
 
     uint32_t lba, sector_count;
@@ -271,6 +368,87 @@ void print_file(char* filename, uint16_t cluster) {
         sprint("No such file found\n", -1, -1);
     }
 
+
+
+}
+
+
+void create_file(char* filename, uint16_t cluster) {
+
+
+  
+    
+     char fname[11];
+     set_filename(fname, filename);
+
+
+
+    uint16_t buffer[256];
+    uint32_t lba, sector_count;
+    uint32_t free_lba = 0, free_index = 0;
+    bool found = false;
+
+       
+        dir_location(cluster, &lba, &sector_count);
+
+        for(uint32_t s = 0; s < sector_count && !found; s++) {
+
+            ata_read_sector(lba + s, buffer);
+
+            DirEntry* e = (DirEntry*)buffer;
+            for(uint32_t i = 0; i < dir_per_sector; i++) {
+
+                bool same = true;
+        for (int k = 0; k < 11; k++)
+            if (e[i].name[k] != (uint8_t)fname[k]) { same = false; break; }
+
+        if (same) { sprint("Filename already exists\n", -1, -1); return; }
+
+                if(e[i].name[0] == 0x00 || e[i].name[0] == 0xE5) {
+                    free_lba = lba + s;
+                    free_index = i;
+                    found = true;
+                    break;
+                }
+            }
+
+            
+
+            
+
+        }
+
+
+        if(!found) {
+            sprint("Directory is full\n", -1, -1);
+            return;
+        }
+
+    
+
+     ata_read_sector(free_lba, buffer);
+     DirEntry* e = (DirEntry*)buffer;
+
+     DirEntry* file = &e[free_index];
+    
+     for(uint32_t i = 0; i < 11; i++) {
+         file->name[i] = (uint8_t)fname[i];
+     }
+     file->attribute = ATTR_ARCHIVE;
+     file->size = 0;
+     file->low_cluster = 0;
+
+
+
+
+     ata_write_sector(free_lba, buffer);
+
+
+   
+    
+
+
+     
 
 
 }

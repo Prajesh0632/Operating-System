@@ -10,5 +10,6 @@
 //FILE SYSTEM CALLS 
 #define SYS_FLIST 4
 #define SYS_FPRINT 5
+#define SYS_FCREATE 6
 
 

@@ -11,11 +11,11 @@
 
 void start_user_program(uint32_t entry_point) {
    
-    uint32_t user_stack = fralloc(PAGE_SIZE);
+    uint32_t user_stack = fralloc(PAGE_SIZE * 2);
     uint32_t frame = user_stack - PAGE_SIZE;
     guard_frame(frame / PAGE_SIZE);
 
-    uint32_t user_stack_top = user_stack + PAGE_SIZE;
+    uint32_t user_stack_top = user_stack + (2 * PAGE_SIZE);
     switch_user_mode(user_stack_top, entry_point);
 
 

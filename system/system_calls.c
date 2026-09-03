@@ -47,3 +47,11 @@ void sys_fprint(uint16_t cluster, char* filename) {
 
 
 }
+
+
+void sys_fcreate(uint16_t cluster, char* filename) {
+
+        asm volatile("int $0x80" :: "a"(SYS_FCREATE), "b"(filename), "c"(cluster));
+
+
+}
