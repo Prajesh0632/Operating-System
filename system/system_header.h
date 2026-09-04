@@ -1,17 +1,19 @@
-#pragma once 
+#pragma once
 
-//SCREEN SYSTEM CALLS
-#define SYS_WRITE 0
-#define SYS_READ 1
-#define SYS_CLEAR 2 
-#define SYS_SCLEAR 3
+typedef enum {
 
+    // SCREEN SYSTEM CALLS
+    SYS_WRITE,
+    SYS_READ,
+    SYS_CLEAR,
+    SYS_SCLEAR,
 
-//FILE SYSTEM CALLS 
-#define SYS_FLIST 4
-#define SYS_FPRINT 5
-#define SYS_FCREATE 6
-#define SYS_FDELETE 7
-#define SYS_FCD 8
+    // FILE SYSTEM CALLS
+    SYS_FLIST,
+    SYS_FPRINT,
+    SYS_FCREATE,
+    SYS_FDELETE,
+    SYS_FCD,
+    SYS_FMKDIR
 
-
+} SyscallId;

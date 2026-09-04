@@ -91,60 +91,53 @@ void handle_interrupt(int vector, int error_code) {
 
 void handle_syscall(int type, int value, int extra) {
 
-   if(type == SYS_WRITE) sprint((char*)value,-1,-1);
+   switch(type) {
 
-   if(type == SYS_READ) {
-      
-     char *c = (char*)(value);
-     *c = key_dequeue();
+   case SYS_WRITE:
+        sprint((char*)value, -1, -1);
+        break;
 
-
-   
+   case SYS_READ: {
+        char *c = (char*)(value);
+        *c = key_dequeue();
+        break;
    }
 
-   if(type == SYS_CLEAR) {
-    clear_ring();
-   }
+   case SYS_CLEAR:
+        clear_ring();
+        break;
 
+   case SYS_SCLEAR:
+        cls();
+        break;
 
-   if(type == SYS_SCLEAR) {
-    cls();
-   }
+   case SYS_FLIST:
+        list_dir(value);
+        break;
 
+   case SYS_FPRINT:
+        print_file((char*)value, (uint16_t)extra);
+        break;
 
-   if(type == SYS_FLIST) {
+   case SYS_FCREATE:
+        create_file((char*)value, (uint16_t)extra);
+        break;
 
-    list_dir(value);
+   case SYS_FDELETE:
+        delete_file((char*)value, (uint16_t)extra);
+        break;
 
-   }
-
-
-   if(type == SYS_FPRINT) {
-
-    print_file((char*)value, (uint16_t)extra);
-
-
-   }
-
-
-   if(type == SYS_FCREATE) {
-
-    create_file((char*)value, (uint16_t)extra);
-
-   }
-
-   if(type == SYS_FDELETE) {
- 
-    delete_file((char*)value, (uint16_t)extra);
-
-   }
-
-    if (type == SYS_FCD) {
+   case SYS_FCD: {
         uint16_t *new_extra = (uint16_t*)extra;
         *new_extra = change_dir((char*)value, *new_extra);
-    }
+        break;
+   }
 
-   
+   case SYS_FMKDIR:
+        make_dir((char*)value, (uint16_t)extra);
+        break;
+
+   }
 
 }
 

@@ -12,3 +12,4 @@ void sys_fprint(uint16_t, char*);
 void sys_fcreate(uint16_t, char*);
 void sys_fdelete(uint16_t, char*);
 uint16_t sys_fcd(uint16_t, char*);
+void sys_fmkdir(uint16_t, char*);

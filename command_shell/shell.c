@@ -26,7 +26,7 @@ void shell_main() {
 
     char c = sys_read();
     if(c == '\0') continue;
-    
+
     if(c == '\b') {
         if(shell_input_count == 0) continue;
         shell_input_count--;
@@ -34,7 +34,7 @@ void shell_main() {
 
     char s[2] = {c, '\0'};
     sys_write(s);
-    
+
 
     if(c == '\n') {
         shell_buffer[shell_index] = '\0';
@@ -44,11 +44,11 @@ void shell_main() {
         shell_input_count = 0;
         sys_write(">");
         if(exit) break;
-        
+
     }
 
     else if(c == '\b') {
-        
+
         if(shell_index != 0) shell_index--;
     }
 
@@ -56,14 +56,45 @@ void shell_main() {
         shell_buffer[shell_index++] = c;
         shell_input_count++;
     }
-    
+
 
 
     }
-    
-   
 
 
+
+
+}
+
+
+
+typedef enum {
+    CMD_UNKNOWN = 0,
+    CMD_CLEAR,
+    CMD_HELP,
+    CMD_LS,
+    CMD_EXIT,
+    CMD_CAT,
+    CMD_TOUCH,
+    CMD_DELETE,
+    CMD_CD,
+    CMD_MKDIR
+} CommandId;
+
+
+CommandId lookup_command(char* command) {
+
+    if(strcmp(command, "clear")  == 0) return CMD_CLEAR;
+    if(strcmp(command, "-help")  == 0) return CMD_HELP;
+    if(strcmp(command, "ls")     == 0) return CMD_LS;
+    if(strcmp(command, "exit")   == 0) return CMD_EXIT;
+    if(strcmp(command, "cat")    == 0) return CMD_CAT;
+    if(strcmp(command, "touch")  == 0) return CMD_TOUCH;
+    if(strcmp(command, "delete") == 0) return CMD_DELETE;
+    if(strcmp(command, "cd")     == 0) return CMD_CD;
+    if(strcmp(command, "mkdir")  == 0) return CMD_MKDIR;
+ 
+    return CMD_UNKNOWN;
 }
 
 
@@ -71,12 +102,12 @@ void shell_main() {
 bool execute_command(char* command) {
 
     char* args = NULL;
-    
+
     for(int i = 0; command[i] != '\0'; i++) {
 
         if(command[i] == ' ') {
             command[i] = '\0';
-            
+
             for(int j = 0; command[i + j + 1] != '\0'; j++) {
                 if(command[i+j+1] != ' ') {
                      args = &command[i+j+1];
@@ -86,98 +117,80 @@ bool execute_command(char* command) {
 
             break;
         }
-          
+
     }
 
 
-   
+    switch(lookup_command(command)) {
 
-    if(strcmp(command, "clear") == 0) 
-    {
+    case CMD_CLEAR:
         sys_sclear();
-    }
+        break;
 
-    else if(strcmp(command, "-help") == 0) {
+    case CMD_HELP:
 
         sys_write("cd <dirname>: change directory\n. : Current Directory\n.. : Previous Directory\n\n");
         sys_write("ls : lists all files and directories within the current directory\n\n");
         sys_write("cat <filename> : print a file within the current directory\n\n");
         sys_write("touch <filename> : create an empty file within the current directory\n\n");
         sys_write("delete <filename> : delete the file within the current directory\n\n");
-
-
-
-
         sys_write("clear : clears the screen\n\n");
         sys_write("exit  : exit the command line\n\n");
+        break;
 
-    }
 
-
-    else if(strcmp(command, "ls") == 0) {
-         
+    case CMD_LS:
         sys_flist(current_cluster);
+        break;
 
-    }
 
-    else if(strcmp(command, "exit") == 0) {
+    case CMD_EXIT:
         sys_write("Shell Successfully exited\n");
         return true;
 
-    }
 
-    else if(strcmp(command, "cat") == 0) {
+    case CMD_CAT:
 
         if(args == NULL){
          sys_write("No filename provided\n");
          sys_write(current_directory);
          return false;
-
-
         }
 
         sys_fprint(current_cluster, args);
-    }
+        break;
 
 
-    else if(strcmp(command, "touch") == 0) {
+    case CMD_TOUCH:
 
         if(args == NULL){
          sys_write("Provide a filename to create\n");
          sys_write(current_directory);
          return false;
-
-
         }
 
         sys_fcreate(current_cluster, args);
+        break;
 
 
-
-    }
-
-    else if(strcmp(command, "delete") == 0) {
+    case CMD_DELETE:
 
         if(args == NULL){
          sys_write("Provide a filename to delete\n");
          sys_write(current_directory);
          return false;
-
-
         }
 
         sys_fdelete(current_cluster, args);
+        break;
 
-    }
 
-     else if(strcmp(command, "cd") == 0) {
+    case CMD_CD: {
 
         if(args == NULL){
          sys_write("No directory Provided\n");
          sys_write(current_directory);
          return false;
-
-
         }
 
         uint16_t new_cluster = sys_fcd(current_cluster, args);
@@ -197,7 +210,7 @@ bool execute_command(char* command) {
 
                        while(current_directory_buf[cur_idx] != '\\')cur_idx--;
                        current_directory_buf[cur_idx] = '\0';
-                       
+
 
                     }
 
@@ -222,24 +235,29 @@ bool execute_command(char* command) {
 
 
         }
-
+        break;
     }
 
+    case CMD_MKDIR:
+
+        if(args == NULL){
+            sys_write("No directory Provided\n");
+            sys_write(current_directory);
+            return false;
+        }
+        
+        sys_fmkdir(current_cluster, args);
+        break;
 
 
 
-
-
-    else {
-         
-
-          
-
-
+    default:
         sys_write("No command Found for ");
         sys_write(command);
         sys_write("\n");
         sys_write("Use -help command for more information.\n");
+        break;
+
     }
 
     sys_write(current_directory);

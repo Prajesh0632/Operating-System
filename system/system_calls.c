@@ -79,3 +79,12 @@ void sys_fdelete(uint16_t cluster, char* filename) {
 
 
 
+void sys_fmkdir(uint16_t cluster, char* dirname) {
+
+        asm volatile("int $0x80" :: "a"(SYS_FMKDIR), "b"(dirname), "c"(cluster));
+
+
+}
+
+
+
