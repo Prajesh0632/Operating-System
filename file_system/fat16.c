@@ -318,6 +318,13 @@ void print_file(char *filename, uint16_t cluster)
     }
 }
 
+
+
+
+
+
+
+
 void create_file(char *filename, uint16_t cluster)
 {
 
@@ -328,6 +335,8 @@ void create_file(char *filename, uint16_t cluster)
     uint32_t lba, sector_count;
     uint32_t free_lba = 0, free_index = 0;
     bool found = false;
+
+    uint16_t last_cluster;
 
     while (cluster == 0 || (cluster >= 0x0002 && cluster < 0xFFF8))
     {
@@ -369,34 +378,63 @@ void create_file(char *filename, uint16_t cluster)
 
         if (!found)
         {
+            last_cluster = cluster;
             cluster = get_next_cluster(cluster);
             continue;
         }
 
-        ata_read_sector(free_lba, buffer);
-        DirEntry *e = (DirEntry *)buffer;
-
-        DirEntry *file = &e[free_index];
-
-        for (uint32_t i = 0; i < 11; i++)
-        {
-            file->name[i] = (uint8_t)fname[i];
-        }
-        file->attribute = ATTR_ARCHIVE;
-        file->size = 0;
-        file->low_cluster = 0;
-
-        ata_write_sector(free_lba, buffer);
-
         break;
     }
 
+    uint32_t new_cluster;
+
     if (!found)
     {
+        new_cluster = get_free_cluster();
+        if (new_cluster == 0)
+        {
+            sprint("Directory is full. Free some space before creating a file\n", -1, -1);
+            return;
+        }
 
-        sprint("Directory is full. Free some space before creating a file\n", -1, -1);
+        uint16_t file_buffer[256];
+        uint32_t fat_offset = last_cluster * 2;
+        uint32_t fat_lba = fat_start + (fat_offset / bytes_per_sector);
+
+        ata_read_sector(fat_lba, file_buffer);
+
+        file_buffer[fat_offset % bytes_per_sector / 2] = new_cluster;
+
+        ata_write_sector(fat_lba, file_buffer);
+        ata_write_sector(fat_lba + sectors_per_fat, file_buffer);
+
+        free_lba = data_start + (new_cluster - 2) * sectors_per_cluster;
+        free_index = 0;
     }
+
+    ata_read_sector(free_lba, buffer);
+    DirEntry *e = (DirEntry *)buffer;
+
+    DirEntry *file = &e[free_index];
+
+    for (uint32_t i = 0; i < 11; i++)
+    {
+        file->name[i] = (uint8_t)fname[i];
+    }
+    file->attribute = ATTR_ARCHIVE;
+    file->size = 0;
+    file->low_cluster = 0;
+
+    ata_write_sector(free_lba, buffer);
 }
+
+
+
+
+
+
+
+
 
 void delete_file(char *filename, uint16_t cluster)
 {
@@ -426,7 +464,7 @@ void delete_file(char *filename, uint16_t cluster)
             for (uint32_t i = 0; i < dir_per_sector; i++)
             {
 
-                if (e[i].attribute == ATTR_DIRECTORY)
+                if (e[i].attribute & ATTR_DIRECTORY)
                     continue;
 
                 bool same = true;
@@ -494,6 +532,18 @@ void delete_file(char *filename, uint16_t cluster)
     ata_write_sector(file_lba, buffer);
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
 typedef struct
 {
 
@@ -501,6 +551,7 @@ typedef struct
     uint32_t lba, index;
 
 } DirInfo;
+
 
 DirInfo next_dir(char *dir, uint16_t cluster)
 {
@@ -551,6 +602,14 @@ DirInfo next_dir(char *dir, uint16_t cluster)
     return direc;
 }
 
+
+
+
+
+
+
+
+
 uint16_t change_dir(char *path, uint16_t cluster)
 {
 
@@ -598,6 +657,12 @@ uint16_t change_dir(char *path, uint16_t cluster)
     return cluster;
 }
 
+
+
+
+
+
+
 void make_dir(char *dirname, uint16_t cluster)
 {
     uint16_t parent_cluster = cluster;
@@ -637,7 +702,7 @@ void make_dir(char *dirname, uint16_t cluster)
                     }
                 if (same)
                 {
-                    sprint("Filename already exists\n", -1, -1);
+                    sprint("Directory already exists\n", -1, -1);
                     return;
                 }
 
@@ -659,99 +724,99 @@ void make_dir(char *dirname, uint16_t cluster)
         cluster = get_next_cluster(cluster);
     }
 
-           uint16_t new_cluster = get_free_cluster();
+    uint32_t next_cluster;
 
+    if (!found)
+    {
 
-    if(!found) {
-
-
-      if(parent_cluster == 0) { // root full 
-        sprint("Directory is full\n", -1, -1);
-        return;
-
-
-        if(new_cluster == 0) {
+        next_cluster = get_free_cluster();
+        if (next_cluster == 0)
+        {
             sprint("Disk is full. Free some space before continuing.\n", -1, -1);
             return;
-        }  
-
-
-        
-
-
-
-      
-    }
-
-  
-       
-
-        ata_read_sector(free_lba, buffer);
-
-        DirEntry *e = (DirEntry *)buffer;
-
-        DirEntry *new_dir = &e[free_index];
-
-        new_dir->attribute = ATTR_DIRECTORY;
-
-        for (uint32_t i = 0; i < 11; i++)
-        {
-            new_dir->name[i] = (uint8_t)dname[i];
         }
 
-        new_dir->high_cluster = 0;
-        new_dir->low_cluster = new_cluster;
-        new_dir->size = 0;
+        if (parent_cluster == 0)
+        { // root full
+            sprint("Directory is full\n", -1, -1);
+            return;
+        }
 
+        uint16_t fat_buffer[256];
+        uint32_t offset = last_cluster * 2;
+        uint32_t fat_lba = fat_start + (offset / bytes_per_sector);
 
+        ata_read_sector(fat_lba, fat_buffer);
 
+        fat_buffer[offset % bytes_per_sector / 2] = next_cluster;
 
-        //For . and .. in this directory 
+        ata_write_sector(fat_lba, fat_buffer);
+        ata_write_sector(fat_lba + sectors_per_fat, fat_buffer);
 
-        uint16_t dir_sector[256];
-        for(uint32_t i = 0; i < 256; i++)dir_sector[i] = 0;
-        uint32_t new_dir_lba = data_start + (new_cluster - 2) * sectors_per_cluster;
-
-        uint16_t zero_sector[256];
-        for(uint32_t i = 0; i < 256; i++) zero_sector[i] = 0;
-        for(uint32_t s = 1; s < sectors_per_cluster; s++)
-            ata_write_sector(new_dir_lba + s, zero_sector);
-
-        DirEntry* entry = (DirEntry*)dir_sector;
-
-        // For .
-        entry[0].attribute = ATTR_DIRECTORY;
-        entry[0].high_cluster = 0;
-        entry[0].low_cluster = new_cluster;
-        entry[0].name[0] = '.';
-
-        // For ..
-        entry[1].attribute = ATTR_DIRECTORY;
-        entry[1].high_cluster = 0;
-        entry[1].low_cluster = parent_cluster;
-        entry[1].name[0] = '.';
-        entry[1].name[1] = '.';
-
-        ata_write_sector(new_dir_lba, dir_sector);
-
-
-
-        ata_write_sector(free_lba, buffer);
-
-
-
-    
-
-
-       
-
-
-    
-
-   
-
-
-          
-
+        free_lba = data_start + (next_cluster - 2) * sectors_per_cluster;
+        free_index = 0;
     }
+
+    uint16_t new_cluster = get_free_cluster();
+    if (new_cluster == 0)
+    {
+
+        sprint("Disk is full. Free some space before continuing.\n", -1, -1);
+        return;
+    }
+
+    ata_read_sector(free_lba, buffer);
+
+    DirEntry *e = (DirEntry *)buffer;
+
+    DirEntry *new_dir = &e[free_index];
+
+    new_dir->attribute = ATTR_DIRECTORY;
+
+    for (uint32_t i = 0; i < 11; i++)
+    {
+        new_dir->name[i] = (uint8_t)dname[i];
+    }
+
+    new_dir->high_cluster = 0;
+    new_dir->low_cluster = new_cluster;
+    new_dir->size = 0;
+
+    // For . and .. in this directory
+
+    uint16_t dir_sector[256];
+    for (uint32_t i = 0; i < 256; i++)
+        dir_sector[i] = 0;
+    uint32_t new_dir_lba = data_start + (new_cluster - 2) * sectors_per_cluster;
+
+    uint16_t zero_sector[256];
+    for (uint32_t i = 0; i < 256; i++)
+        zero_sector[i] = 0;
+    for (uint32_t s = 1; s < sectors_per_cluster; s++)
+        ata_write_sector(new_dir_lba + s, zero_sector);
+
+    DirEntry *entry = (DirEntry *)dir_sector;
+
+    // For .
+    entry[0].attribute = ATTR_DIRECTORY;
+    entry[0].high_cluster = 0;
+    entry[0].low_cluster = new_cluster;
+
+    // For ..
+    entry[1].attribute = ATTR_DIRECTORY;
+    entry[1].high_cluster = 0;
+    entry[1].low_cluster = parent_cluster;
+
+    for (int k = 0; k < 11; k++)
+        entry[0].name[k] = ' ';
+    entry[0].name[0] = '.';
+
+    for (int k = 0; k < 11; k++)
+        entry[1].name[k] = ' ';
+    entry[1].name[0] = '.';
+    entry[1].name[1] = '.';
+
+    ata_write_sector(new_dir_lba, dir_sector);
+
+    ata_write_sector(free_lba, buffer);
 }
