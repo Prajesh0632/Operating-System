@@ -12,7 +12,7 @@ void sys_write(char* string) {
 char sys_read() {
 
     char c;
-    asm volatile("int $0x80" :: "a"(SYS_READ), "b"(&c));
+    asm volatile("int $0x80" :: "a"(SYS_READ), "b"(&c) : "memory");
     return c;
 
 
@@ -64,6 +64,17 @@ void sys_fdelete(uint16_t cluster, char* filename) {
 
 
 }
+
+
+ uint16_t sys_fcd(uint16_t cluster, char* path) {
+        
+        uint16_t new_cluster = cluster;
+        asm volatile("int $0x80" :: "a"(SYS_FCD), "b"(path), "c"(&new_cluster) : "memory");
+        return new_cluster;
+
+
+
+ }
 
 
 

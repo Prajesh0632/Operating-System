@@ -12,5 +12,6 @@
 #define SYS_FPRINT 5
 #define SYS_FCREATE 6
 #define SYS_FDELETE 7
+#define SYS_FCD 8
 
 

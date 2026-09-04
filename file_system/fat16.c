@@ -486,6 +486,8 @@ void delete_file(char* filename, uint16_t cluster) {
             DirEntry* e = (DirEntry*)buffer;
 
             for(uint32_t i = 0; i < dir_per_sector; i++) {
+            
+            if(e[i].attribute == ATTR_DIRECTORY) continue;
 
             bool same = true;
             for (int k = 0; k < 11; k++)
@@ -578,5 +580,119 @@ void delete_file(char* filename, uint16_t cluster) {
 
     }
 
-        
 
+
+typedef struct{
+
+    bool found;
+    uint32_t lba, index;
+
+}DirInfo;
+    
+
+DirInfo next_dir(char* dir, uint16_t cluster) {
+
+    uint16_t buffer[256];
+    uint32_t lba, sector_count;
+
+   DirInfo direc;
+   direc.found = false;
+
+    while(cluster == 0 || (cluster >= 0x0002 && cluster < 0xFFF8)) {
+           
+           dir_location(cluster, &lba, &sector_count);
+
+           for(uint32_t s = 0; s < sector_count; s++) {
+               
+            ata_read_sector(lba + s, buffer);
+
+            DirEntry* e = (DirEntry*)buffer;
+
+            for(uint32_t i = 0; i < dir_per_sector; i++) {
+
+                if(!(e[i].attribute & ATTR_DIRECTORY)) continue;
+                if(e[i].name[0] == 0x00 || e[i].name[0] == 0xE5) continue;
+
+                char name[13];   // get_filename emits up to 8 + '.' + 3 + '\0'
+                get_filename(name, e[i].name);
+
+                if(strcmp(name, dir) == 0) {
+
+                    direc.found = true;
+                    direc.lba = lba + s;
+                    direc.index = i;
+                    return direc;
+
+                }
+            }
+
+           }
+
+           cluster = get_next_cluster(cluster);
+
+    }
+
+
+    return direc;
+
+}
+
+
+uint16_t change_dir(char* path, uint16_t cluster) {
+
+
+ char path_buffer[32];
+ int p_idx = 0;
+
+ uint16_t original_cluster = cluster;
+
+ DirInfo dir_info;
+
+
+ for(int i = 0; path[i] != '\0'; i++) {
+
+    if(path[i] != '\\') {
+
+        path_buffer[p_idx++] = path[i];
+    }  
+
+    if(path[i] == '\\' || path[i+1] == '\0') {
+
+    path_buffer[p_idx] = '\0';
+
+    dir_info = next_dir(path_buffer, cluster);
+    if(!dir_info.found) {
+        sprint("No such Directory\n", -1, -1);
+        return original_cluster;
+    }
+
+    uint16_t buffer[256];
+    ata_read_sector(dir_info.lba, buffer);
+
+    DirEntry* e = (DirEntry*)buffer;
+
+    DirEntry* new_dir = &e[dir_info.index];
+
+    cluster = new_dir->low_cluster;
+
+    p_idx = 0;
+
+
+    }
+    
+
+
+    
+
+
+ }
+
+
+
+ 
+
+
+
+
+  return cluster;
+}

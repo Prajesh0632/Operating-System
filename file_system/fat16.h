@@ -68,3 +68,4 @@ void list_dir(uint32_t);
 void print_file(char*, uint16_t);
 void create_file(char*, uint16_t);
 void delete_file(char*, uint16_t);
+uint16_t change_dir(char*, uint16_t);

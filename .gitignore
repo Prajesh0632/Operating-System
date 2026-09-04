@@ -10,7 +10,7 @@
 
 # Disk image backups
 *.bak
-*.img.bak
+*.img.*
 
 # Editor / OS noise
 *~

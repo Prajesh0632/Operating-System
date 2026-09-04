@@ -139,6 +139,11 @@ void handle_syscall(int type, int value, int extra) {
 
    }
 
+    if (type == SYS_FCD) {
+        uint16_t *new_extra = (uint16_t*)extra;
+        *new_extra = change_dir((char*)value, *new_extra);
+    }
+
    
 
 }

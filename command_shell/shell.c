@@ -11,12 +11,15 @@ int shell_input_count = 0;
 
 
 
-char* current_directory = "root>";
+char current_directory_buf[128] = "root";
+int cur_idx = 4;
+char* current_directory = current_directory_buf;
 uint16_t current_cluster = 0;
 
 void shell_main() {
 
     sys_write(current_directory);
+    sys_write(">");
 
     bool exit = false;
     while(!exit) {
@@ -39,6 +42,7 @@ void shell_main() {
 
         shell_index = 0;
         shell_input_count = 0;
+        sys_write(">");
         if(exit) break;
         
     }
@@ -95,16 +99,17 @@ bool execute_command(char* command) {
 
     else if(strcmp(command, "-help") == 0) {
 
-        sys_write("ls : lists all files and directories within the current directory\n");
-        sys_write("cat <filename> : print a file within the current directory\n");
-        sys_write("touch <filename> : create an empty file within the current directory\n");
-        sys_write("delete <filename> : delete the file within the current directory\n");
+        sys_write("cd <dirname>: change directory\n. : Current Directory\n.. : Previous Directory\n\n");
+        sys_write("ls : lists all files and directories within the current directory\n\n");
+        sys_write("cat <filename> : print a file within the current directory\n\n");
+        sys_write("touch <filename> : create an empty file within the current directory\n\n");
+        sys_write("delete <filename> : delete the file within the current directory\n\n");
 
 
 
 
-        sys_write("clear : clears the screen\n");
-        sys_write("exit  : exit the command line\n");
+        sys_write("clear : clears the screen\n\n");
+        sys_write("exit  : exit the command line\n\n");
 
     }
 
@@ -164,6 +169,63 @@ bool execute_command(char* command) {
         sys_fdelete(current_cluster, args);
 
     }
+
+     else if(strcmp(command, "cd") == 0) {
+
+        if(args == NULL){
+         sys_write("No directory Provided\n");
+         sys_write(current_directory);
+         return false;
+
+
+        }
+
+        uint16_t new_cluster = sys_fcd(current_cluster, args);
+        if(new_cluster != current_cluster) {
+            current_cluster = new_cluster;
+
+            char path_buffer[16];
+            int path_idx = 0;
+            for(int i = 0; args[i] != '\0'; i++) {
+
+                if(args[i] != '\\') path_buffer[path_idx++] = args[i];
+
+                if(args[i] == '\\' || args[i+1] == '\0') {
+                    path_buffer[path_idx] = '\0';
+
+                    if(strcmp(path_buffer, "..") == 0) {
+
+                       while(current_directory_buf[cur_idx] != '\\')cur_idx--;
+                       current_directory_buf[cur_idx] = '\0';
+                       
+
+                    }
+
+                    else {
+
+                        if(cur_idx != 0) current_directory_buf[cur_idx++] = '\\';
+
+
+
+                        for(int j = 0; path_buffer[j] != '\0'; j++) {
+                            current_directory_buf[cur_idx++] = path_buffer[j];
+                        }
+                        current_directory_buf[cur_idx] = '\0';
+                    }
+
+
+                    path_idx = 0;
+                }
+
+
+            }
+
+
+        }
+
+    }
+
+
 
 
 
