@@ -66,12 +66,11 @@ void handle_interrupt(int vector, int error_code) {
     
         if(vector == 0) sprint("Division by zero occured", -1, -1);
 
-        if(vector == 14) {
-    sprint("Page Fault at: ", -1, -1);
-    hprint((uint32_t)readCR2());
-    sprint("\n", -1, -1);
-}
-
+       else if(vector == 14) {
+        sprint("Page Fault at: ", -1, -1);
+        hprint((uint32_t)readCR2());
+        sprint("\n", -1, -1);
+    }
         if(vector == 33) {
 
             
@@ -89,7 +88,7 @@ void handle_interrupt(int vector, int error_code) {
 }
 
 
-void handle_syscall(int type, int value, int extra) {
+void handle_syscall(int type, int value, int extra, int extra1) {
 
    switch(type) {
 
@@ -114,6 +113,12 @@ void handle_syscall(int type, int value, int extra) {
    case SYS_FLIST:
         list_dir(value);
         break;
+    
+   case SYS_FFIND:
+        bool* found = (bool*)extra1;
+        *found = ffind((char*)value, (uint16_t)extra);
+        break;
+
 
    case SYS_FPRINT:
         print_file((char*)value, (uint16_t)extra);
@@ -137,7 +142,15 @@ void handle_syscall(int type, int value, int extra) {
         make_dir((char*)value, (uint16_t)extra);
         break;
 
+    case SYS_FWRITE:
+        write_file((char*)value, (char*)extra1, (uint16_t)extra);
+        break;
+    
+
    }
+
+        
+
 
 }
 

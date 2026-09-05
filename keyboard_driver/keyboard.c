@@ -7,11 +7,13 @@
 
 bool CAPS_LOCK;
 bool SHIFT_PRESS;
+bool CTRL_PRESS;
 
   
 static volatile char ring_queue[KEY_MAX];
 static volatile int head = 0;//only keyboard isr writes to it
 static volatile int tail = 0;//only syscall for write can write to it
+
 
 
 void keyboard_isr() {
@@ -67,6 +69,12 @@ char get_pressed_char() {
                     return 0;
                 }
 
+
+                if(key_code == 0x1D) {          // Left Ctrl pressed
+                    CTRL_PRESS = true;
+                    return 0;
+                }
+
                 if(key_code == 0x3A) {
                     CAPS_LOCK = !CAPS_LOCK;
                     return 0;
@@ -76,7 +84,10 @@ char get_pressed_char() {
 
 
 
+                
+
                 char key = !press ? lower_keyboard_map[key_code] : upper_keyboard_map[key_code];
+                if(CTRL_PRESS && (key == 's' || key == 'S')) return 0x13;
                 return key;
             
             
@@ -87,6 +98,11 @@ char get_pressed_char() {
             else {
                 if(key_code == 0xAA|| key_code == 0xB6) {
                     SHIFT_PRESS = false;
+                }
+
+
+                if(key_code == 0x9D) {          // Left Ctrl released
+                    CTRL_PRESS = false;
                 }
 
                 return 0;

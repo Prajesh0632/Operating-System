@@ -10,10 +10,12 @@ typedef enum {
 
     // FILE SYSTEM CALLS
     SYS_FLIST,
+    SYS_FFIND,
     SYS_FPRINT,
     SYS_FCREATE,
     SYS_FDELETE,
     SYS_FCD,
-    SYS_FMKDIR
+    SYS_FMKDIR,
+    SYS_FWRITE,
 
 } SyscallId;

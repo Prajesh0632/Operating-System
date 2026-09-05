@@ -38,6 +38,18 @@ void sys_flist(uint16_t cluster) {
 
     asm volatile("int $0x80" :: "a"(SYS_FLIST), "b"(cluster));
 
+
+}
+
+
+bool sys_ffind(uint16_t cluster, char* filename) {
+
+    bool found = false;
+    asm volatile("int $0x80" :: "a"(SYS_FFIND), "b"(filename), "c"(cluster), "d"(&found) : "memory");
+
+    return found;
+
+
 }
 
 
@@ -85,6 +97,14 @@ void sys_fmkdir(uint16_t cluster, char* dirname) {
 
 
 }
+
+void sys_fwrite(uint16_t cluster, char* filename, char* content) {
+
+        asm volatile("int $0x80" :: "a"(SYS_FWRITE), "b"(filename), "c"(cluster), "d"(content));
+
+
+}
+
 
 
 

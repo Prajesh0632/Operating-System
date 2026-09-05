@@ -28,6 +28,7 @@ SYSTEM_CALLS="system/system_calls.c"
 STIO="headers/io/stio.c"
 STRING="headers/string/str.c"
 COMMAND_SHELL="command_shell/shell.c"
+TEXT_EDITOR="command_shell/text_editor.c"
 DISK_RW="file_system/ata.c"
 FAT16="file_system/fat16.c"
 
@@ -75,6 +76,9 @@ gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $USER_SWITCH -o us
 echo "Compiling shell.c -> shell.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $COMMAND_SHELL -o shell.o
 
+echo "Compiling text_editor.c -> text_editor.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $TEXT_EDITOR -o text_editor.o
+
 echo "Compiling system_calls.c -> system_calls.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $SYSTEM_CALLS -o system_calls.o
 
@@ -102,7 +106,7 @@ nasm -f elf32 $USER_ENTRY -o user_entry.o
 
 
 echo "Linking kernel with interrupts at 0x10000 -> kernel.bin"
-ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o memory.o heap.o e_paging.o paging.o tss.o user.o user_entry.o user_switch.o system_calls.o stio.o str.o ata.o fat16.o -o kernel.bin
+ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o text_editor.o memory.o heap.o e_paging.o paging.o tss.o user.o user_entry.o user_switch.o system_calls.o stio.o str.o ata.o fat16.o -o kernel.bin
 
 
 

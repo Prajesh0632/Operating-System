@@ -215,6 +215,49 @@ void list_dir(uint32_t cluster)
     }
 }
 
+bool ffind(char *filename, uint16_t cluster)
+{
+    uint16_t buffer[256];
+
+    uint32_t lba, sector_count;
+    bool found = false;
+
+    while (cluster == 0 || (cluster >= 0x0002 && cluster < 0xFFF8))
+    {
+
+        dir_location(cluster, &lba, &sector_count);
+
+        for (uint32_t s = 0; s < sector_count; s++)
+        {
+
+            ata_read_sector(lba + s, buffer);
+
+            DirEntry *e = (DirEntry *)buffer;
+
+            for (uint32_t i = 0; i < dir_per_sector; i++)
+            {
+
+                if (!(e[i].attribute & ATTR_ARCHIVE))
+                    continue;
+
+                if (e[i].name[0] == 0x00 || e[i].name[0] == 0xE5)
+                    continue;
+
+                char fname[12];
+                get_filename(fname, e[i].name);
+                if (strcmp(fname, filename) == 0)
+                {
+                    return true;
+                }
+            }
+        }
+
+        cluster = get_next_cluster(cluster);
+    }
+
+    return false;
+}
+
 void display_file(DirEntry *file)
 {
 
@@ -318,13 +361,6 @@ void print_file(char *filename, uint16_t cluster)
     }
 }
 
-
-
-
-
-
-
-
 void create_file(char *filename, uint16_t cluster)
 {
 
@@ -336,14 +372,14 @@ void create_file(char *filename, uint16_t cluster)
     uint32_t free_lba = 0, free_index = 0;
     bool found = false;
 
-    uint16_t last_cluster;
+    uint16_t last_cluster = 0;
 
     while (cluster == 0 || (cluster >= 0x0002 && cluster < 0xFFF8))
     {
 
         dir_location(cluster, &lba, &sector_count);
 
-        for (uint32_t s = 0; s < sector_count && !found; s++)
+        for (uint32_t s = 0; s < sector_count; s++)
         {
 
             ata_read_sector(lba + s, buffer);
@@ -366,24 +402,21 @@ void create_file(char *filename, uint16_t cluster)
                     return;
                 }
 
-                if (e[i].name[0] == 0x00 || e[i].name[0] == 0xE5)
+                // Remember the first free slot, but keep scanning the whole
+                // directory -- stopping here would skip any duplicate that
+                // happens to live at a later index (e.g. a slot freed by a
+                // delete, sitting before the real entry in scan order).
+                if (!found && (e[i].name[0] == 0x00 || e[i].name[0] == 0xE5))
                 {
                     free_lba = lba + s;
                     free_index = i;
                     found = true;
-                    break;
                 }
             }
         }
 
-        if (!found)
-        {
-            last_cluster = cluster;
-            cluster = get_next_cluster(cluster);
-            continue;
-        }
-
-        break;
+        last_cluster = cluster;
+        cluster = get_next_cluster(cluster);
     }
 
     uint32_t new_cluster;
@@ -427,14 +460,6 @@ void create_file(char *filename, uint16_t cluster)
 
     ata_write_sector(free_lba, buffer);
 }
-
-
-
-
-
-
-
-
 
 void delete_file(char *filename, uint16_t cluster)
 {
@@ -532,18 +557,6 @@ void delete_file(char *filename, uint16_t cluster)
     ata_write_sector(file_lba, buffer);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 typedef struct
 {
 
@@ -551,7 +564,6 @@ typedef struct
     uint32_t lba, index;
 
 } DirInfo;
-
 
 DirInfo next_dir(char *dir, uint16_t cluster)
 {
@@ -602,14 +614,6 @@ DirInfo next_dir(char *dir, uint16_t cluster)
     return direc;
 }
 
-
-
-
-
-
-
-
-
 uint16_t change_dir(char *path, uint16_t cluster)
 {
 
@@ -657,16 +661,10 @@ uint16_t change_dir(char *path, uint16_t cluster)
     return cluster;
 }
 
-
-
-
-
-
-
 void make_dir(char *dirname, uint16_t cluster)
 {
     uint16_t parent_cluster = cluster;
-    uint16_t last_cluster;
+    uint16_t last_cluster = 0;
 
     char dname[11];
     set_filename(dname, dirname);
@@ -676,14 +674,14 @@ void make_dir(char *dirname, uint16_t cluster)
     uint32_t lba, sector_count;
 
     bool found = false;
-    uint32_t free_lba, free_index;
+    uint32_t free_lba = 0, free_index = 0;
 
     while (cluster == 0 || (cluster >= 0x0002 && cluster < 0xFFF8))
     {
 
         dir_location(cluster, &lba, &sector_count);
 
-        for (uint32_t s = 0; s < sector_count && !found; s++)
+        for (uint32_t s = 0; s < sector_count; s++)
         {
 
             ata_read_sector(lba + s, buffer);
@@ -706,19 +704,19 @@ void make_dir(char *dirname, uint16_t cluster)
                     return;
                 }
 
-                if (e[i].name[0] == 0x00 || e[i].name[0] == 0xE5)
+                // Remember the first free slot, but keep scanning the whole
+                // directory -- stopping here would skip any duplicate that
+                // happens to live at a later index (e.g. a slot freed by a
+                // delete, sitting before the real entry in scan order).
+                if (!found && (e[i].name[0] == 0x00 || e[i].name[0] == 0xE5))
                 {
 
                     found = true;
                     free_lba = lba + s;
                     free_index = i;
-                    break;
                 }
             }
         }
-
-        if (found)
-            break;
 
         last_cluster = cluster;
         cluster = get_next_cluster(cluster);
@@ -819,4 +817,190 @@ void make_dir(char *dirname, uint16_t cluster)
     ata_write_sector(new_dir_lba, dir_sector);
 
     ata_write_sector(free_lba, buffer);
+}
+
+int32_t check_clusters(uint16_t cluster)
+{
+
+    uint32_t cluster_count = 0;
+
+    while ((cluster >= 0x0002 && cluster < 0xFFF8))
+    {
+
+        cluster_count++;
+        cluster = get_next_cluster(cluster);
+    }
+
+    return cluster_count;
+}
+
+void write_file(char *filename, char *content, uint16_t cluster)
+{
+
+    uint16_t buffer[256];
+    uint32_t lba, sector_count;
+
+    char fname[12];
+    set_filename(fname, filename);
+
+    uint32_t f_lba, f_index;
+    bool found = false;
+
+    while (cluster == 0 || (cluster >= 0x0002 && cluster < 0xFFF8))
+    {
+
+        dir_location(cluster, &lba, &sector_count);
+
+        for (uint32_t s = 0; s < sector_count && !found; s++)
+        {
+
+            ata_read_sector(lba + s, buffer);
+
+            DirEntry *e = (DirEntry *)buffer;
+
+            for (uint32_t i = 0; i < dir_per_sector; i++)
+            {
+
+                if (!(e[i].attribute & ATTR_ARCHIVE))
+                    continue;
+
+                bool same = true;
+                for (int k = 0; k < 11; k++)
+                    if (e[i].name[k] != (uint8_t)fname[k])
+                    {
+                        same = false;
+                        break;
+                    }
+                if (same)
+                {
+                    found = true;
+                    f_lba = lba + s;
+                    f_index = i;
+                    break;
+                }
+            }
+        }
+
+        if (found)
+            break;
+
+        cluster = get_next_cluster(cluster);
+    }
+
+    if (!found)
+        return;
+
+    ata_read_sector(f_lba, buffer);
+
+    DirEntry *e = (DirEntry *)buffer;
+
+    DirEntry *file = &e[f_index];
+
+    // Write content to the file
+
+    uint32_t file_length_bytes = 0;
+
+    for (int i = 0; content[i] != '\0'; i++)
+        file_length_bytes++;
+
+    file->size = file_length_bytes;    
+
+    uint32_t total_sectors_required = (file_length_bytes + bytes_per_sector - 1) / bytes_per_sector;
+
+    uint32_t total_clusters_required = (total_sectors_required + sectors_per_cluster - 1) / sectors_per_cluster;
+
+    int32_t enough_clusters = check_clusters(file->low_cluster);
+    bool has_existing_cluster = (enough_clusters > 0);
+
+    uint16_t start_cluster = file->low_cluster;
+    uint16_t last_cluster;
+
+    uint16_t data_buffer[256];
+    uint32_t content_idx = 0;
+
+    for (uint32_t c = 0; c < ((total_clusters_required <= enough_clusters) ? total_clusters_required : enough_clusters); c++)
+    {
+
+        uint32_t data_offset = start_cluster - 2;
+        uint32_t data_lba = data_start + data_offset * sectors_per_cluster;
+
+        for (uint32_t s = 0; s < sectors_per_cluster; s++)
+        {
+
+            for (int i = 0; i < 256; i++)
+                data_buffer[i] = 0;
+
+            uint8_t *content_bytes = (uint8_t *)data_buffer;
+            for (int i = 0; i < bytes_per_sector && file_length_bytes > 0; i++)
+            {
+                content_bytes[i] = (uint8_t)content[content_idx++];
+                file_length_bytes--;
+            }
+            ata_write_sector(data_lba + s, data_buffer);
+        }
+
+        last_cluster = start_cluster;
+        start_cluster = get_next_cluster(start_cluster);
+    }
+
+    int32_t remaining_clusters = total_clusters_required - enough_clusters;
+    if (remaining_clusters > 0)
+    {
+        
+
+        uint16_t fat_buffer[256];
+        uint16_t new_clusters[remaining_clusters];
+        uint32_t cl_idx = 0;
+
+        for (int i = 0; i < remaining_clusters; i++)
+        {
+            uint16_t new_cluster = get_free_cluster();
+            if (new_cluster == 0)
+            {
+                sprint("Disk is full. Cannot write to the file.", -1, -1);
+                return;
+            }
+
+            new_clusters[i] = new_cluster;
+        }
+
+        if(has_existing_cluster) start_cluster = last_cluster;
+        else {
+            file->low_cluster = new_clusters[0];
+            start_cluster = new_clusters[0];
+        }
+        for (int i = (has_existing_cluster) ? 0 : 1; i < remaining_clusters; i++)
+        {
+
+            uint32_t fat_offset = start_cluster * 2;
+            uint32_t fat_lba = fat_start + fat_offset / bytes_per_sector;
+            ata_read_sector(fat_lba, fat_buffer);
+            fat_buffer[fat_offset % bytes_per_sector / 2] = new_clusters[i];
+            ata_write_sector(fat_lba, fat_buffer);
+            ata_write_sector(fat_lba + sectors_per_fat, fat_buffer);
+
+
+            start_cluster = new_clusters[i];
+            uint32_t data_offset = start_cluster - 2;
+            uint32_t data_lba = data_start + data_offset * sectors_per_cluster;
+            for (uint32_t s = 0; s < sectors_per_cluster; s++)
+            {
+
+                for (int i = 0; i < 256; i++)
+                    data_buffer[i] = 0;
+
+                uint8_t *content_bytes = (uint8_t *)data_buffer;
+                for (int i = 0; i < bytes_per_sector && file_length_bytes > 0; i++)
+                {
+                    content_bytes[i] = (uint8_t)content[content_idx++];
+                    file_length_bytes--;
+                }
+                ata_write_sector(data_lba + s, data_buffer);
+            }
+        }
+    }
+
+
+    ata_write_sector(f_lba, buffer);
+    sprint("\nFile Successfully saved.\n", -1, -1);
 }

@@ -5,6 +5,10 @@
 #include <stdint.h>
 
 
+bool write_mode = false;
+
+
+
 char shell_buffer[128];
 int shell_index = 0;
 int shell_input_count = 0;
@@ -23,6 +27,8 @@ void shell_main() {
 
     bool exit = false;
     while(!exit) {
+
+    
 
     char c = sys_read();
     if(c == '\0') continue;
@@ -78,7 +84,8 @@ typedef enum {
     CMD_TOUCH,
     CMD_DELETE,
     CMD_CD,
-    CMD_MKDIR
+    CMD_MKDIR,
+    CMD_WRITE,
 } CommandId;
 
 
@@ -93,6 +100,9 @@ CommandId lookup_command(char* command) {
     if(strcmp(command, "delete") == 0) return CMD_DELETE;
     if(strcmp(command, "cd")     == 0) return CMD_CD;
     if(strcmp(command, "mkdir")  == 0) return CMD_MKDIR;
+    if(strcmp(command, "write")  == 0) return CMD_WRITE;
+
+
  
     return CMD_UNKNOWN;
 }
@@ -133,6 +143,7 @@ bool execute_command(char* command) {
         sys_write("ls : lists all files and directories within the current directory\n\n");
         sys_write("cat <filename> : print a file within the current directory\n\n");
         sys_write("touch <filename> : create an empty file within the current directory\n\n");
+        sys_write("write <filename> : writes content to a file. Opening a file with previous content will override it.\n\n");
         sys_write("delete <filename> : delete the file within the current directory\n\n");
         sys_write("clear : clears the screen\n\n");
         sys_write("exit  : exit the command line\n\n");
@@ -158,6 +169,7 @@ bool execute_command(char* command) {
         }
 
         sys_fprint(current_cluster, args);
+        sys_write("\n");
         break;
 
 
@@ -208,7 +220,8 @@ bool execute_command(char* command) {
 
                     if(strcmp(path_buffer, "..") == 0) {
 
-                       while(current_directory_buf[cur_idx] != '\\')cur_idx--;
+                       while(cur_idx > 4 && current_directory_buf[cur_idx] != '\\')cur_idx--;
+                       if(cur_idx <= 4) cur_idx = 4;
                        current_directory_buf[cur_idx] = '\0';
 
 
@@ -245,9 +258,34 @@ bool execute_command(char* command) {
             sys_write(current_directory);
             return false;
         }
-        
+
         sys_fmkdir(current_cluster, args);
         break;
+
+
+    case CMD_WRITE: 
+         if(args == NULL){
+            sys_write("No file provided\n");
+            sys_write(current_directory);
+            return false;
+        }
+
+
+        char text_buffer[1024];
+        bool found = sys_ffind(current_cluster, args);
+        if(!found) {
+            sys_write("File not found.\n");
+            sys_write(current_directory);
+            return false;
+        }
+        sys_clear();
+        int length = text_editor(text_buffer);
+        write_mode = false;
+        sys_fwrite(current_cluster, args, text_buffer);
+        sys_write("\n");
+        break;
+
+      
 
 
 

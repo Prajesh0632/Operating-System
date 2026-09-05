@@ -6,3 +6,4 @@
 
 void shell_main();
 bool execute_command(char*);
+int text_editor(char*);
