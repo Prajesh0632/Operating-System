@@ -271,7 +271,6 @@ bool execute_command(char* command) {
         }
 
 
-        char text_buffer[1024];
         bool found = sys_ffind(current_cluster, args);
         if(!found) {
             sys_write("File not found.\n");
@@ -279,10 +278,10 @@ bool execute_command(char* command) {
             return false;
         }
         sys_clear();
+        char text_buffer[1024];
         int length = text_editor(text_buffer);
         write_mode = false;
         sys_fwrite(current_cluster, args, text_buffer);
-        sys_write("\n");
         break;
 
       

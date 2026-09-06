@@ -63,17 +63,17 @@ void init_bitmap() {
 
 
 
-    //mark the space occupied by kernel 
-    uint32_t k_start = (uint32_t)_kernel_start;
-    uint32_t k_end = (uint32_t)_kernel_end;
+    //mark the space occupied by kernel (physical span, kernel is linked high)
+    uint32_t k_start = (uint32_t)_kernel_phys_start;
+    uint32_t k_end = (uint32_t)_kernel_phys_end;
     for(uint32_t start = align_down(k_start); start < align_up(k_end); start += PAGE_SIZE) {
         bitmap[start / PAGE_SIZE] = 1;
     }
 
 
-    //mark the space occupied by the stack (stack starts at)
-    uint32_t stack_start = (uint32_t)_kernel_end;
-    uint32_t stack_end = stack_start + 0x200000;   
+    //mark the space occupied by the stack (sits right after the kernel image)
+    uint32_t stack_start = (uint32_t)_kernel_phys_end;
+    uint32_t stack_end = stack_start + 0x200000;
     for(uint32_t i = align_down(stack_start); i < align_up(stack_end); i += PAGE_SIZE) {
         bitmap[i / PAGE_SIZE] = 1;
     }

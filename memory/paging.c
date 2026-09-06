@@ -6,6 +6,7 @@
 uint32_t* page_directory;
 uint32_t* page_table;
 
+extern char _kernel_phys_end[];
 
 void guard_frame(uint32_t frame) {
     page_table[frame] &= ~1;
@@ -48,16 +49,22 @@ for(int i = 0; i < page_directory_size ; i++) {
     page_table[i * 1024 + j] = ((i * 1024 + j) * PAGE_SIZE) | 7; // attributes: supervisor level, read/write, present.
 }
 
-uint32_t frame = (uint32_t)_kernel_end / PAGE_SIZE;
-guard_frame(frame);   // clear the Present bit for this one frame(If stack ever drops to the _kernel_end to prevent overwtiting the kernel code)
-//raises PF(page fault exception)
-
 // attributes: supervisor level, read/write, present
 page_directory[i] = ((unsigned int)&page_table[i * 1024]) | 7;
 
 
 }
 
+
+// Higher half: the kernel is linked at 0xC0000000+, so mirror the first 8 MiB
+// of physical RAM there (kernel image + boot stack) or this directory would
+// unmap the code that is running the moment CR3 is loaded.
+//   0xC0000000 >> 22 == 768
+page_directory[768] = page_directory[0];   // 0xC0000000..0xC03FFFFF -> phys 0..4 MiB
+page_directory[769] = page_directory[1];   // 0xC0400000..0xC07FFFFF -> phys 4..8 MiB
+
+// Trap a stack underflow past the end of the kernel image.
+guard_frame((uint32_t)_kernel_phys_end / PAGE_SIZE);
 
 
 

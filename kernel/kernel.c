@@ -28,7 +28,6 @@ void main() {
 
     init_screen();
     init_mem();
-    init_mem();
     init_heap();
     init_idt();
     init_paging();

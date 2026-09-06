@@ -5,10 +5,12 @@
 #define MEMORY_MAP_COUNT  (*(uint16_t*)0x77FC)
 
 #define PAGE_SIZE 4096
-#define MAX_FRAMES 262144 // for upto 1GB RAM
+#define MAX_FRAMES (262144) // for upto 4GB RAM
 
-extern char _kernel_start[];
-extern char _kernel_end[];
+extern char _kernel_start[];       // virtual (0xC00xxxxx)
+extern char _kernel_end[];         // virtual (0xC00xxxxx)
+extern char _kernel_phys_start[];  // physical load address
+extern char _kernel_phys_end[];    // physical, one past the kernel image
 
 
 extern uint32_t frames;
