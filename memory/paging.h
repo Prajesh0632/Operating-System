@@ -1,3 +1,7 @@
+#pragma once 
+
+extern uint32_t* page_directory;
+extern uint32_t* page_table;
 
 void init_paging();
 extern void loadPageDirectory(unsigned int*);

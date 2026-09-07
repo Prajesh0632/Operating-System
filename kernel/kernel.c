@@ -8,6 +8,7 @@
 #include "../user_space/user_program.h"
 #include "../user_space/switch_user.h"
 #include "../file_system/fat16.h"
+#include "../memory/elf_loader.h"
 
 void start_user_program(uint32_t entry_point) {
    
@@ -33,13 +34,14 @@ void main() {
     init_paging();
     init_tss((uint32_t)(_kernel_end + 0x200000));
     init_fat16();
+    elf_inspect("HELLO.ELF", 0);
      
    
 
 
 
 
-    start_user_program((uint32_t)user_prog);
+    // start_user_program((uint32_t)user_prog);
 
     
 
