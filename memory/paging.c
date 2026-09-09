@@ -76,3 +76,17 @@ enablePaging();
 }
 
 
+void map_page(uint32_t vaddr, uint32_t* page_directory) {
+
+
+
+    uint16_t pd_idx = (vaddr >> 22) & 0x03FF;
+    uint16_t pt_idx = (vaddr >> 12) & 0x03FF;
+
+    
+
+   
+}
+
+
+

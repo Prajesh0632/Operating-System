@@ -5,6 +5,8 @@
 #include "../file_system/ata.h"
 #include "../screen_driver/screen.h"
 #include "../headers/string/str.h"
+#include "../process/process32.h"
+#include "heap.h"
 
 /* FAT16 primitives that aren't in fat16.h (defined in fat16.c) */
 extern uint32_t bytes_per_sector;
@@ -105,76 +107,82 @@ static void line(const char *label, uint32_t value)
     sprint("\n", -1, -1);
 }
 
-void elf_inspect(const char *name, uint16_t dir_cluster)
+void elf_inspect(const char *name, uint16_t dir_cluster, Process_32* process)
 {
-    DirEntry de;
+    
+    DirEntry De;
 
-    if (!fat_find(name, dir_cluster, &de)) {
-        sprint("elf: file not found\n", -1, -1);
-        return;
-    }
-    if (de.size < sizeof(Elf32_Ehdr) || de.size > ELF_MAX_SIZE) {
-        sprint("elf: bad file size\n", -1, -1);
+    if(!fat_find(name, dir_cluster, &De)) {
+        sprint("Cannot find the file specified.\n", -1, -1);
         return;
     }
 
-    uint8_t *image = (uint8_t *)(uintptr_t)fralloc(de.size);
-    if ((uintptr_t)image == (uintptr_t)-1) {
-        sprint("elf: no memory for image\n", -1, -1);
+    uint8_t* content = (uint8_t*)fralloc(sizeof(De.size));
+
+    if(!fat_read(&De, content, De.size)){
+        sprint("Cannot read file.\n", -1, -1);
         return;
-    }
-    if (fat_read(&de, image, de.size) != de.size) {
-        sprint("elf: short read\n", -1, -1);
-        free((uint64_t *)(uintptr_t)image, de.size);
-        return;
-    }
+    } 
 
-    const Elf32_Ehdr *eh = (const Elf32_Ehdr *)image;
+    Elf32_Ehdr* hddr = (Elf32_Ehdr*)content;
 
-    line("file size ", de.size);
-
-    sprint("magic     ", -1, -1);
-    hprint(eh->e_ident[0]); hprint(eh->e_ident[1]);
-    hprint(eh->e_ident[2]); hprint(eh->e_ident[3]);
-    sprint("\n", -1, -1);
-
-    if (eh->e_ident[0] != 0x7F || eh->e_ident[1] != 'E' ||
-        eh->e_ident[2] != 'L'  || eh->e_ident[3] != 'F') {
-        sprint("elf: not an ELF file\n", -1, -1);
-        free((uint64_t *)(uintptr_t)image, de.size);
+    if(hddr->e_ident[0] != 0x7F || hddr->e_ident[1] != 'E' || hddr->e_ident[2] != 'L' || hddr->e_ident[3] != 'F') {
+        sprint("Not an elf file.\n", -1, -1);
         return;
     }
 
-    line("class     ", eh->e_ident[4]);   /* 1 = 32-bit        */
-    line("data       ", eh->e_ident[5]);  /* 1 = little-endian */
-    line("type      ", eh->e_type);       /* 2 = ET_EXEC       */
-    line("machine   ", eh->e_machine);    /* 3 = EM_386        */
-    line("entry     ", eh->e_entry);
-    line("phoff     ", eh->e_phoff);
-    line("phentsize ", eh->e_phentsize);
-    line("phnum     ", eh->e_phnum);
-
-    if (eh->e_phentsize < sizeof(Elf32_Phdr) ||
-        eh->e_phoff + (uint32_t)eh->e_phnum * eh->e_phentsize > de.size) {
-        sprint("elf: program header table out of range\n", -1, -1);
-        free((uint64_t *)(uintptr_t)image, de.size);
+        if(hddr->e_phnum == 0) {
+        sprint("No Program header found.\n", -1, -1);
         return;
+    }    
+
+
+    Elf32_Phdr* phddrs = (Elf32_Phdr*) ((uint8_t*)hddr + hddr->e_phoff);
+
+    for(uint32_t i = 0; i < hddr->e_phnum; i++) {
+
+        Elf32_Phdr* phddr = &phddrs[i];
+
+        if(phddr->p_type != PT_LOAD) continue;
+
+        uint32_t vaddr = phddr->p_vaddr;
+        uint32_t vaddr_aligned = align_down(vaddr);
+        uint32_t mem_size = phddr->p_memsz + (vaddr - vaddr_aligned);
+        uint32_t pages_required = align_up(mem_size) / PAGE_SIZE;
+
+
+       
+        Vma* vaddr_tail = process->vma_list;
+        while(vaddr_tail && vaddr_tail->next != NULL) vaddr_tail = vaddr_tail->next;
+        for(uint32_t p = 0; p < pages_required; p++) {
+
+            uint32_t cur_vaddr = vaddr_aligned + (p * PAGE_SIZE);
+
+            if(vaddr_tail == NULL) {
+                vaddr_tail = (Vma*)halloc(sizeof(Vma));
+                vaddr_tail->v_start = cur_vaddr;
+                vaddr_tail->v_end = cur_vaddr + PAGE_SIZE - 1;
+                vaddr_tail->next = NULL;
+
+                process->vma_list = vaddr_tail;
+            }
+
+            else {
+                Vma* new_vma = (Vma*)halloc(sizeof(Vma));
+                new_vma->v_start = cur_vaddr;
+                new_vma->v_end = cur_vaddr + PAGE_SIZE - 1;
+                new_vma->next = NULL;
+
+                vaddr_tail->next = new_vma;
+                vaddr_tail = new_vma;
+            }
+
+            map_page(cur_vaddr, process->page_directory);
+
+        }
     }
 
-    for (int i = 0; i < eh->e_phnum; i++) {
-
-        const Elf32_Phdr *ph =
-            (const Elf32_Phdr *)(image + eh->e_phoff + (uint32_t)i * eh->e_phentsize);
-
-        sprint("  seg ", -1, -1); hprint(i);
-        sprint(" type ",   -1, -1); hprint(ph->p_type);      /* 1 = PT_LOAD */
-        sprint(" off ",    -1, -1); hprint(ph->p_offset);
-        sprint(" vaddr ",  -1, -1); hprint(ph->p_vaddr);
-        sprint(" filesz ", -1, -1); hprint(ph->p_filesz);
-        sprint(" memsz ",  -1, -1); hprint(ph->p_memsz);
-        sprint(" flags ",  -1, -1); hprint(ph->p_flags);     /* 4=R 2=W 1=X */
-        sprint("\n", -1, -1);
-    }
-
-    free((uint64_t *)(uintptr_t)image, de.size);
+    
 }
+
+
