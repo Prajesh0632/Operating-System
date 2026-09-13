@@ -35,18 +35,20 @@ void main() {
     init_paging();
     init_tss((uint32_t)(_kernel_end + 0x200000));
     init_fat16();
-    Process_32* process = (Process_32*)halloc(sizeof(Process_32));
-    process->pid = 100;
-    process->page_directory = (uint32_t*)fralloc(PAGE_SIZE);
-    elf_inspect("HELLO.ELF", 0, process);
-
+   
+    
      
    
 
 
 
-
     // start_user_program((uint32_t)user_prog);
+
+
+    Process_32* process = create_process();
+    elf_inspect("HELLO.ELF", 0, process);
+    start_user_program(process->ip);
+
 
     
 

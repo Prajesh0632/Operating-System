@@ -31,11 +31,3 @@ typedef struct {
     uint32_t p_align;
 } __attribute__((packed)) Elf32_Phdr;
 
-#define ELFCLASS32  1
-#define ET_EXEC     2
-#define EM_386      3
-
-#define PT_LOAD     1
-#define PF_X        1
-#define PF_W        2
-#define PF_R        4

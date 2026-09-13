@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include "../process/process32.h"
 
 
 
@@ -43,6 +44,5 @@
  *   dir_cluster start cluster of the directory (0 = root)
  */
 
-struct Process_32;
  
 void elf_inspect(const char *name, uint16_t dir_cluster, Process_32*);

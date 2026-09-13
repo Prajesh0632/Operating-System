@@ -553,7 +553,6 @@ void delete_file(char *filename, uint16_t cluster)
     }
 
     file->name[0] = 0xE5;
-
     ata_write_sector(file_lba, buffer);
 }
 
@@ -610,7 +609,6 @@ DirInfo next_dir(char *dir, uint16_t cluster)
 
         cluster = get_next_cluster(cluster);
     }
-
     return direc;
 }
 
@@ -845,7 +843,6 @@ void write_file(char *filename, char *content, uint16_t cluster)
 
     uint32_t f_lba, f_index;
     bool found = false;
-
     while (cluster == 0 || (cluster >= 0x0002 && cluster < 0xFFF8))
     {
 
@@ -886,7 +883,6 @@ void write_file(char *filename, char *content, uint16_t cluster)
 
         cluster = get_next_cluster(cluster);
     }
-
     if (!found)
         return;
 
@@ -961,7 +957,7 @@ void write_file(char *filename, char *content, uint16_t cluster)
                 return;
             }
 
-            new_clusters[i] = new_cluster;
+         new_clusters[i] = new_cluster;
         }
 
         if(has_existing_cluster) start_cluster = last_cluster;
@@ -999,8 +995,6 @@ void write_file(char *filename, char *content, uint16_t cluster)
             }
         }
     }
-
-
     ata_write_sector(f_lba, buffer);
     sprint("\nFile Successfully saved.\n", -1, -1);
 }
