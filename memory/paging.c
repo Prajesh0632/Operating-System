@@ -76,6 +76,12 @@ enablePaging();
 }
 
 
+
+void invlpg(uint32_t vaddr)
+{
+    __asm__ volatile ("invlpg (%0)" :: "r"(vaddr) : "memory");
+}
+
 void map_page(uint32_t vaddr, uint32_t* page_directory) {
 
 
@@ -83,26 +89,12 @@ void map_page(uint32_t vaddr, uint32_t* page_directory) {
     uint16_t pd_idx = (vaddr >> 22) & 0x03FF;
     uint16_t pt_idx = (vaddr >> 12) & 0x03FF;
 
-    uint32_t* page_table;
-    
-    if(!(page_directory[pd_idx] & PDE_PRESENT)) {
-
-       uint32_t* new_page = (uint32_t*)fralloc(PAGE_SIZE);
-
-       page_directory[pd_idx] = ((uint32_t)new_page & 0xFFFFF000) | PDE_PRESENT | PDE_WRITABLE | PDE_USER;
-
-       page_table = new_page;
-    }
-
-    else {
+   
         
-        page_table = (uint32_t*)(page_directory[pd_idx] & 0xFFFFF000);
-
-    }
-
+    page_table = (uint32_t*)(page_directory[pd_idx] & 0xFFFFF000);
     uint32_t* physical_addr = (uint32_t*)fralloc(PAGE_SIZE);
     page_table[pt_idx] = ((uint32_t)physical_addr & 0xFFFFF000) | PTE_PRESENT | PTE_WRITABLE | PTE_USER;
-    
+
 
 
 

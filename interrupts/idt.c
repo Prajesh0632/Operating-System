@@ -5,6 +5,7 @@
 #include "../memory/paging.h"
 #include "../system/system_header.h"
 #include "../file_system/fat16.h"
+#include "../memory/vmm.h"
 
 
 idt_t interrupts[MAX_INTR];
@@ -67,10 +68,11 @@ void handle_interrupt(int vector, int error_code) {
         if(vector == 0) sprint("Division by zero occured", -1, -1);
 
        else if(vector == 14) {
-        sprint("Page Fault at: ", -1, -1);
-        hprint((uint32_t)readCR2());
-        sprint("\n", -1, -1);
+       
+        uint32_t pagefault_addr =  (uint32_t)readCR2();
+        vmm_handle_pagefault(pagefault_addr);
     }
+
         if(vector == 33) {
 
             

@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #define ATTR_READ_ONLY  0x01
 #define ATTR_HIDDEN     0x02
@@ -72,3 +73,6 @@ void delete_file(char*, uint16_t);
 uint16_t change_dir(char*, uint16_t);
 void make_dir(char*, uint16_t);
 void write_file(char*, char*, uint16_t);
+int fat_find(const char*, uint16_t, DirEntry*);
+
+uint32_t fat_read(const DirEntry*, uint8_t*, uint32_t);

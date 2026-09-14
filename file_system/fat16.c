@@ -998,3 +998,94 @@ void write_file(char *filename, char *content, uint16_t cluster)
     ata_write_sector(f_lba, buffer);
     sprint("\nFile Successfully saved.\n", -1, -1);
 }
+
+
+int fat_find(const char *name, uint16_t dir_cluster, DirEntry *out)
+{
+    uint16_t buf[256];
+    uint32_t lba, count;
+    uint16_t cluster = dir_cluster;
+    uint32_t per_sector = bytes_per_sector / sizeof(DirEntry);
+
+    while (cluster == 0 || (cluster >= 0x0002 && cluster < 0xFFF8))
+    {
+
+        dir_location(cluster, &lba, &count);
+
+        for (uint32_t s = 0; s < count; s++)
+        {
+
+            ata_read_sector(lba + s, buf);
+            DirEntry *e = (DirEntry *)buf;
+
+            for (uint32_t i = 0; i < per_sector; i++)
+            {
+
+                if (e[i].name[0] == 0x00)
+                    return 0; /* end of directory */
+                if (e[i].name[0] == 0xE5)
+                    continue; /* deleted          */
+                if (e[i].attribute == ATTR_LFN)
+                    continue;
+                if (e[i].attribute & ATTR_VOLUME_ID)
+                    continue;
+
+                char fname[13];
+                get_filename(fname, (char *)e[i].name);
+
+                if (strcmp(fname, name) == 0)
+                {
+                    *out = e[i];
+                    return 1;
+                }
+            }
+        }
+
+        if (cluster == 0)
+            break;
+        cluster = get_next_cluster(cluster);
+    }
+
+    return 0;
+}
+
+
+/* copy the whole file into dst (up to cap bytes); returns bytes written */
+uint32_t fat_read(const DirEntry *file, uint8_t *dst, uint32_t cap)
+{
+    uint16_t sect[256];
+    uint32_t lba, count;
+    uint16_t cluster = file->low_cluster;
+    uint32_t remaining = file->size;
+    uint32_t written = 0;
+
+    while (remaining > 0 && cluster >= 0x0002 && cluster < 0xFFF8)
+    {
+
+        dir_location(cluster, &lba, &count);
+
+        for (uint32_t s = 0; s < count && remaining > 0; s++)
+        {
+
+            ata_read_sector(lba + s, sect);
+
+            uint32_t n = (remaining < bytes_per_sector) ? remaining : bytes_per_sector;
+            if (written + n > cap)
+                n = cap - written;
+
+            uint8_t *src = (uint8_t *)sect;
+            for (uint32_t i = 0; i < n; i++)
+                dst[written + i] = src[i];
+
+            written += n;
+            remaining -= n;
+
+            if (written >= cap)
+                return written;
+        }
+
+        cluster = get_next_cluster(cluster);
+    }
+
+    return written;
+}

@@ -17,6 +17,8 @@ static void sys_write(const char *s)
     __asm__ volatile ("int $0x80" :: "a"(SYS_WRITE), "b"(s) : "memory");
 }
 
+
+
 __attribute__((noreturn))
 void _start(void)
 {

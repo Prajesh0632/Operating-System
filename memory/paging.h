@@ -57,4 +57,6 @@ extern void enablePaging();
 extern uint32_t readCR2();
 void guard_frame(uint32_t);
 
+void invlpg(uint32_t);
+
 void map_page(uint32_t, uint32_t*);

@@ -47,7 +47,16 @@ void main() {
 
     Process_32* process = create_process();
     elf_inspect("HELLO.ELF", 0, process);
-    start_user_program(process->ip);
+
+    if(process->ready){
+
+        process->filename = "HELLO.ELF";
+        process->dir_cluster = 0;
+        current_process = process;
+        start_user_program(process->ip);
+
+    } 
+
 
 
     
