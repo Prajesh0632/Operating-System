@@ -1,5 +1,5 @@
 /*
- * Linker script for standalone user-space programs (e.g. memory/elf.c).
+ * Linker script for standalone user-space programs (userland/programs/*.c).
  *
  * The kernel lives in the top 1 GiB (0xC0000000+), so user space is
  * 0x00000000 .. 0xBFFFFFFF. We link at 4 MiB - clear of the kernel's

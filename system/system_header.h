@@ -17,5 +17,6 @@ typedef enum {
     SYS_FCD,
     SYS_FMKDIR,
     SYS_FWRITE,
+    SYS_LOAD_PROGRAM,
 
 } SyscallId;

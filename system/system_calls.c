@@ -106,5 +106,13 @@ void sys_fwrite(uint16_t cluster, char* filename, char* content) {
 }
 
 
+void sys_load_program(uint16_t cluster, char* filename) {
+
+                asm volatile("int $0x80" :: "a"(SYS_LOAD_PROGRAM), "b"(filename), "c"(cluster));
+
+
+}
+
+
 
 

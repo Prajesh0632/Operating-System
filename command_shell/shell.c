@@ -86,6 +86,7 @@ typedef enum {
     CMD_CD,
     CMD_MKDIR,
     CMD_WRITE,
+    CMD_LOAD_PROGRAM
 } CommandId;
 
 
@@ -101,6 +102,7 @@ CommandId lookup_command(char* command) {
     if(strcmp(command, "cd")     == 0) return CMD_CD;
     if(strcmp(command, "mkdir")  == 0) return CMD_MKDIR;
     if(strcmp(command, "write")  == 0) return CMD_WRITE;
+    if(strcmp(command, "run")    == 0) return CMD_LOAD_PROGRAM;
 
 
  
@@ -285,6 +287,17 @@ bool execute_command(char* command) {
         break;
 
       
+
+    case CMD_LOAD_PROGRAM:
+     if(args == NULL){
+            sys_write("No file provided\n");
+            sys_write(current_directory);
+            return false;
+        }
+
+        sys_load_program(current_cluster, args);
+        
+
 
 
 

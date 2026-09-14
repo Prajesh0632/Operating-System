@@ -26,6 +26,7 @@ ELF_LOADER="memory/elf_loader.c"
 VMM="memory/vmm.c"
 MEM_UTIL="memory/memory.c"
 PROCESS32="process/process32.c"
+PROGRAM="process/program.c"
 TSS="descriptors/tss.c"
 USER_SWITCH="user_space/switch_user.c"
 SYSTEM_CALLS="system/system_calls.c"
@@ -73,6 +74,9 @@ gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $MEM_UTIL -o mem_u
 
 echo "Compiling process32.c -> process32.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $PROCESS32 -o process32.o
+
+echo "Compiling program.c -> program.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $PROGRAM -o program.o
 
 echo "Compiling tss.c -> tss.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $TSS -o tss.o
@@ -122,7 +126,7 @@ nasm -f elf32 $USER_ENTRY -o user_entry.o
 
 
 echo "Linking kernel with interrupts at 0x10000 -> kernel.bin"
-ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o text_editor.o memory.o heap.o e_paging.o paging.o elf_loader.o vmm.o mem_util.o process32.o tss.o user.o user_entry.o user_switch.o system_calls.o stio.o str.o ata.o fat16.o -o kernel.bin
+ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o text_editor.o memory.o heap.o e_paging.o paging.o elf_loader.o vmm.o mem_util.o process32.o program.o tss.o user.o user_entry.o user_switch.o system_calls.o stio.o str.o ata.o fat16.o -o kernel.bin
 
 
 

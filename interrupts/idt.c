@@ -6,6 +6,7 @@
 #include "../system/system_header.h"
 #include "../file_system/fat16.h"
 #include "../memory/vmm.h"
+#include "../process/program.h"
 
 
 idt_t interrupts[MAX_INTR];
@@ -147,6 +148,13 @@ void handle_syscall(int type, int value, int extra, int extra1) {
     case SYS_FWRITE:
         write_file((char*)value, (char*)extra1, (uint16_t)extra);
         break;
+
+     
+     case SYS_LOAD_PROGRAM:
+        load_user_program((char*)value, (uint16_t)extra);
+
+         
+
     
 
    }

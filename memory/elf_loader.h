@@ -45,4 +45,4 @@
  */
 
  
-void elf_inspect(const char *name, uint16_t dir_cluster, Process_32*);
+void load_program(const char *name, uint16_t dir_cluster, Process_32*);

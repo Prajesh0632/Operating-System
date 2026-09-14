@@ -32,7 +32,7 @@ static void line(const char *label, uint32_t value)
     sprint("\n", -1, -1);
 }
 
-void elf_inspect(const char *name, uint16_t dir_cluster, Process_32 *process)
+void load_program(const char *name, uint16_t dir_cluster, Process_32 *process)
 {
 
     DirEntry De;

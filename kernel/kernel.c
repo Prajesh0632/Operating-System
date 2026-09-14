@@ -10,18 +10,9 @@
 #include "../file_system/fat16.h"
 #include "../memory/elf_loader.h"
 #include "../process/process32.h"
-
-void start_user_program(uint32_t entry_point) {
-   
-    uint32_t user_stack = fralloc(PAGE_SIZE * 2);
-    uint32_t frame = user_stack - PAGE_SIZE;
-    guard_frame(frame / PAGE_SIZE);
-
-    uint32_t user_stack_top = user_stack + (2 * PAGE_SIZE);
-    switch_user_mode(user_stack_top, entry_point);
+#include "../process/program.h"
 
 
-}
 
 
 
@@ -42,20 +33,10 @@ void main() {
 
 
 
-    // start_user_program((uint32_t)user_prog);
+    start_user_program((uint32_t)user_prog);
 
 
-    Process_32* process = create_process();
-    elf_inspect("HELLO.ELF", 0, process);
-
-    if(process->ready){
-
-        process->filename = "HELLO.ELF";
-        process->dir_cluster = 0;
-        current_process = process;
-        start_user_program(process->ip);
-
-    } 
+   
 
 
 

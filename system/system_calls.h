@@ -17,3 +17,5 @@ uint16_t sys_fcd(uint16_t, char*);
 void sys_fmkdir(uint16_t, char*);
 void sys_fwrite(uint16_t, char*, char*);
 
+void sys_load_program(uint16_t, char*);
+
