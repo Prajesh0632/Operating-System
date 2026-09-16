@@ -11,6 +11,7 @@
 # Disk image backups
 *.bak
 *.img.*
+*.vdi
 
 # Editor / OS noise
 *~

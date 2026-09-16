@@ -36,6 +36,9 @@
 
 typedef struct{
 
+    struct Process_32* parent;
+    
+
     uint32_t pid;  // Process ID 
     uint32_t sp;  //  Process Stack Pointer 
     uint32_t ip; //   Process Instruction Pointer 
@@ -48,7 +51,7 @@ typedef struct{
     
 
 
-    uint32_t* page_directory;// Process Page Directory 
+    uint32_t page_directory[1024];// Process Page Directory 
 
     char* filename;
     uint32_t dir_cluster;

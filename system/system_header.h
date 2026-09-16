@@ -19,4 +19,11 @@ typedef enum {
     SYS_FWRITE,
     SYS_LOAD_PROGRAM,
 
+
+    //Process SYSTEM CALLS
+    SYS_FORK,
+    SYS_EXEC,
+    SYS_EXIT,
+    
+
 } SyscallId;

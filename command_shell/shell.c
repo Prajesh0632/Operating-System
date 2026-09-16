@@ -93,7 +93,7 @@ typedef enum {
 CommandId lookup_command(char* command) {
 
     if(strcmp(command, "clear")  == 0) return CMD_CLEAR;
-    if(strcmp(command, "-help")  == 0) return CMD_HELP;
+    if(strcmp(command, "help")  == 0) return CMD_HELP;
     if(strcmp(command, "ls")     == 0) return CMD_LS;
     if(strcmp(command, "exit")   == 0) return CMD_EXIT;
     if(strcmp(command, "cat")    == 0) return CMD_CAT;
@@ -305,7 +305,7 @@ bool execute_command(char* command) {
         sys_write("No command Found for ");
         sys_write(command);
         sys_write("\n");
-        sys_write("Use -help command for more information.\n");
+        sys_write("Use help command for more information.\n");
         break;
 
     }
