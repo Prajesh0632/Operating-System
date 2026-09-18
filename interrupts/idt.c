@@ -154,6 +154,10 @@ void handle_syscall(int type, int value, int extra, int extra1) {
         load_user_process((char*)value, (uint16_t)extra);
         break;
 
+     case SYS_EXIT:
+        exit_proc();
+        break;
+
          
 
     

@@ -71,3 +71,9 @@ void sys_fwrite(uint16_t cluster, char *filename, char *content)
 {
     asm volatile("int $0x80" :: "a"(SYS_FWRITE), "b"(filename), "c"(cluster), "d"(content));
 }
+
+
+void sys_exit()
+{
+    asm volatile("int $0x80" :: "a"(SYS_EXIT));
+}

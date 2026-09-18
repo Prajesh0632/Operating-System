@@ -18,11 +18,13 @@
 #include <stdbool.h>
 
 typedef enum {
+       // SCREEN SYSTEM CALLS
     SYS_WRITE,
     SYS_READ,
     SYS_CLEAR,
     SYS_SCLEAR,
 
+    // FILE SYSTEM CALLS
     SYS_FLIST,
     SYS_FFIND,
     SYS_FPRINT,
@@ -31,6 +33,13 @@ typedef enum {
     SYS_FCD,
     SYS_FMKDIR,
     SYS_FWRITE,
+    SYS_LOAD_PROGRAM,
+
+
+    //Process SYSTEM CALLS
+    SYS_FORK,
+    SYS_EXEC,
+    SYS_EXIT,
 } SyscallId;
 
 void     sys_write(char *string);
@@ -46,3 +55,5 @@ void     sys_fdelete(uint16_t cluster, char *filename);
 uint16_t sys_fcd(uint16_t cluster, char *path);
 void     sys_fmkdir(uint16_t cluster, char *dirname);
 void     sys_fwrite(uint16_t cluster, char *filename, char *content);
+
+void sys_exit();

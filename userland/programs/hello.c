@@ -1,8 +1,7 @@
-
+#include "nolibc.h"
 #include "stio.h"
 
 
-__attribute__((noreturn))
 void _start(void)
 {
     char name[20];
@@ -12,6 +11,5 @@ void _start(void)
     print("\nYour name is %s", name);
 
 
-    for (;;)
-        __asm__ volatile ("pause");   /* no SYS_EXIT yet - just spin */
+    sys_exit();
 }

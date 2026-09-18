@@ -5,6 +5,7 @@
 #include "../memory/heap.h"
 #include "../memory/elf_loader.h"
 #include "../memory/vmm.h"
+#include "../screen_driver/screen.h"
 #include <stdbool.h>
 
 Process_32* running_process = NULL;
@@ -82,6 +83,7 @@ void load_user_process(char* filename, uint16_t cluster) {
 void start_user_process(Process_32* process) {
    
   
+    running_process = process;
     uint32_t user_stack_top = process->sp;
     switch_user_mode(user_stack_top, process->ip);
 
@@ -94,7 +96,9 @@ void start_user_process(Process_32* process) {
 
 
 
-void exit_process() {
+void exit_proc() {
+
+
      
     Process_32* process = running_process;
     uint32_t* pd = process->page_directory;
@@ -112,6 +116,20 @@ void exit_process() {
         }
     }
 
+    Vma* vma_ptr = process->vma_list;
+
+    while(vma_ptr != NULL) {
+
+        Vma* to_free = vma_ptr;
+        vma_ptr = vma_ptr->next;
+        hfree((uint32_t*)vma_ptr);
+    }
+
+    running_process = NULL;
+    
+
+
+            sprint("\nProgram Successfully Exited", -1, -1);
 
 
 }
