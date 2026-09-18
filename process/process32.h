@@ -51,8 +51,7 @@ typedef struct{
     
 
 
-    uint32_t page_directory[1024];// Process Page Directory 
-
+    uint32_t* page_directory;// Process Page Directory  
     char* filename;
     uint32_t dir_cluster;
 

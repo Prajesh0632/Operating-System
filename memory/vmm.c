@@ -18,19 +18,21 @@ void vmm_map_page(uint32_t vaddr, uint32_t* page_directory) {
     uint16_t pt_idx = (vaddr >> 12) & 0x03FF;
 
     uint32_t* page_table;
-    
+
     if(!(page_directory[pd_idx] & PDE_PRESENT)) {
 
-       uint32_t* new_page = (uint32_t*)fralloc(PAGE_SIZE);
+       uint32_t new_page = fralloc(PAGE_SIZE);
 
-       page_directory[pd_idx] = ((uint32_t)new_page & 0xFFFFF000) | PDE_PRESENT | PDE_WRITABLE | PDE_USER;
+       page_directory[pd_idx] = (new_page & 0xFFFFF000) | PDE_PRESENT | PDE_WRITABLE | PDE_USER;
 
-       page_table = new_page;
+       // new_page is physical (that's what a PDE must hold); the kernel
+       // still needs to write PTEs into it, so use its high-half alias.
+       page_table = (uint32_t*)phys_to_virt(new_page & 0xFFFFF000);
     }
 
     else {
-        
-        page_table = (uint32_t*)(page_directory[pd_idx] & 0xFFFFF000);
+
+        page_table = (uint32_t*)phys_to_virt(page_directory[pd_idx] & 0xFFFFF000);
 
     }
 
@@ -43,6 +45,9 @@ void vmm_map_page(uint32_t vaddr, uint32_t* page_directory) {
 
 
 void vmm_handle_pagefault(uint32_t vaddr) {
+
+   
+   
 
     Process_32* process = current_process;
     
@@ -77,7 +82,7 @@ void vmm_handle_pagefault(uint32_t vaddr) {
         return;
     }
 
-    uint8_t *content = (uint8_t *)(uintptr_t)fralloc(De.size);
+    uint8_t *content = (uint8_t *)fralloc_kernel(De.size);
     memset(content, 0, De.size);
 
     if (!fat_read(&De, content, De.size))
@@ -96,6 +101,17 @@ void vmm_handle_pagefault(uint32_t vaddr) {
 
 
   
+
+}
+
+else {
+
+  for(uint32_t i = 0; i < temp_vma->pages_required; i++) {
+    uint32_t cur_vaddr = temp_vma->v_start + i * PAGE_SIZE;
+    map_page(cur_vaddr, process->page_directory);
+
+  }
+    
 
 }
 

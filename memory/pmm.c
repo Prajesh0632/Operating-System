@@ -1,5 +1,7 @@
 #include "pmm.h"
+#include "paging.h"
 #include "../screen_driver/screen.h"
+#include <stddef.h>
 
 
 uint32_t frames = 0;
@@ -151,7 +153,20 @@ uint64_t fralloc(uint64_t size) {
 
 
        return -1;
-     
+
+}
+
+
+// Like fralloc, but for memory the kernel will keep dereferencing directly
+// (not memory whose physical address gets installed into a PDE/PTE/CR3).
+// Returns the frame's higher-half alias so it stays valid under any
+// currently-loaded page directory (see init_paging's 768.. mirror).
+void* fralloc_kernel(uint64_t size) {
+
+    uint64_t p = fralloc(size);
+    if (p == (uint64_t)-1) return NULL;
+
+    return (void*)(uint32_t)(p + KERNEL_VMA);
 }
 
 

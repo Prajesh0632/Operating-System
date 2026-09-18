@@ -43,7 +43,7 @@ void load_program(const char *name, uint16_t dir_cluster, Process_32 *process)
         return;
     }
 
-    uint8_t *content = (uint8_t *)(uintptr_t)fralloc(De.size);
+    uint8_t *content = (uint8_t *)fralloc_kernel(De.size);
     memset(content, 0, De.size);
 
     if (!fat_read(&De, content, De.size))
@@ -143,7 +143,7 @@ void load_program(const char *name, uint16_t dir_cluster, Process_32 *process)
     if (last_vaddr == 0)
         return;
     uint32_t process_heap_vaddr = align_up(last_vaddr);
-    uint32_t process_stack_vaddr = USER_STACK_TOP;
+    uint32_t process_stack_vaddr = align_down(USER_STACK_TOP);
 
     if (process_stack_vaddr <= process_heap_vaddr)
         return;
@@ -152,8 +152,30 @@ void load_program(const char *name, uint16_t dir_cluster, Process_32 *process)
     process->hp_start = process_heap_vaddr;
     process->hp_end = process_heap_vaddr;
     process->ip = process_start_vaddr;
+    
+    Vma* stack_vma = (Vma*)halloc(sizeof(Vma));
+    stack_vma->v_end = process_stack_vaddr;
+    stack_vma->vaddr = stack_vma->v_end;
+    stack_vma->pages_required = 4;
+    stack_vma->v_start = stack_vma->v_end - stack_vma->pages_required * PAGE_SIZE + 1;
+    stack_vma->inFile = false;
+
+    for(uint32_t s = 0; s < stack_vma->pages_required; s++) vmm_map_page(stack_vma->v_start - (s * PAGE_SIZE), process->page_directory);
+
+    Vma* vma_tail = process->vma_list;
+    while(vma_tail->next != NULL) vma_tail = vma_tail->next;
+
+    vma_tail->next = stack_vma;
+    stack_vma->next = NULL;
+
+
     process->ready = true;
 
-    free((uint64_t*)(uintptr_t)content, De.size);
+
+
+    // content came from fralloc_kernel (phys+KERNEL_VMA); free() indexes the
+    // frame bitmap by physical address, so convert back or this corrupts
+    // bitmap entries far past its end.
+    free((uint64_t*)(uintptr_t)virt_to_phys(content), De.size);
 
 }

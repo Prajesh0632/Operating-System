@@ -15,15 +15,20 @@ uint8_t allocate_frame() {
     if(current_heaps < MAX_HEAPS)
     {
 
-         heap_list[current_heaps].base = fralloc(PAGE_SIZE);   
-         if(heap_list[current_heaps].base == -1) {
+         // Kernel structs (like Process_32) get halloc'd and then kept alive
+         // across a CR3 switch to a process's own directory, so the heap's
+         // backing frames need the high-half alias, not a raw physical
+         // address that only the kernel's own directory maps.
+         void* frame = fralloc_kernel(PAGE_SIZE);
+         if(!frame) {
             return 0;
-         } 
+         }
+         heap_list[current_heaps].base = (uint64_t)(uintptr_t)frame;
          heap_list[current_heaps].start = NULL;
          current_heaps++;
 
          return 1;
-         
+
 
     }
 

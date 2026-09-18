@@ -14,6 +14,14 @@
 
 
 
+void init_user(uint32_t user_entry) {
+
+     uint32_t user_stack = (uint32_t)fralloc_kernel(PAGE_SIZE * 2);
+    uint32_t user_stack_top = user_stack + (2 * PAGE_SIZE);
+
+    switch_user_mode(user_stack_top, user_entry);
+
+}
 
 
 void main() {
@@ -33,7 +41,7 @@ void main() {
 
 
 
-    start_user_program((uint32_t)user_prog);
+    init_user((uint32_t)user_prog);
 
 
    
