@@ -296,6 +296,7 @@ bool execute_command(char* command) {
         }
 
         sys_load_program(current_cluster, args);
+        break;
         
 
 

@@ -52,7 +52,7 @@ typedef struct{
 
 
     uint32_t* page_directory;// Process Page Directory  
-    char* filename;
+    char filename[16];
     uint32_t dir_cluster;
 
 

@@ -6,7 +6,7 @@
 #include "../system/system_header.h"
 #include "../file_system/fat16.h"
 #include "../memory/vmm.h"
-#include "../process/program.h"
+#include "../process/process_manager.h"
 
 
 idt_t interrupts[MAX_INTR];
@@ -151,7 +151,8 @@ void handle_syscall(int type, int value, int extra, int extra1) {
 
      
      case SYS_LOAD_PROGRAM:
-        load_user_program((char*)value, (uint16_t)extra);
+        load_user_process((char*)value, (uint16_t)extra);
+        break;
 
          
 
