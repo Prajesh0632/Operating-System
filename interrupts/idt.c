@@ -91,7 +91,8 @@ void handle_interrupt(int vector, int error_code) {
 }
 
 
-void handle_syscall(int type, int value, int extra, int extra1) {
+void handle_syscall(int type, int value, int extra, int extra1, uint32_t* regs) {
+
 
    switch(type) {
 
@@ -151,7 +152,10 @@ void handle_syscall(int type, int value, int extra, int extra1) {
 
      
      case SYS_LOAD_PROGRAM:
-        load_user_process((char*)value, (uint16_t)extra);
+         
+        uint32_t current_user_eip = regs[8];
+        uint32_t current_user_esp = regs[11];
+        load_user_process((char*)value, (uint16_t)extra, current_user_eip, current_user_esp);
         break;
 
      case SYS_EXIT:

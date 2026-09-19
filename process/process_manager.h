@@ -16,8 +16,8 @@ typedef struct ProcessQueue
 
 
 Process_32* create_proc();
-void load_user_process(char*, uint16_t);
-void start_user_process(Process_32*);
+void load_user_process(char*, uint16_t, uint32_t, uint32_t);
+void start_user_process(Process_32*, uint32_t, uint32_t);
 void exit_proc();
 
 

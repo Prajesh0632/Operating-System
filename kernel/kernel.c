@@ -45,7 +45,7 @@ void main() {
     process->sp = init_user_stack();
     process->ready = true;
 
-    start_user_process(process);
+    start_user_process(process, 0, 0);
 
 
 

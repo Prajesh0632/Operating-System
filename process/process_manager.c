@@ -61,7 +61,7 @@ Process_32* create_proc() {
 }
 
 
-void load_user_process(char* filename, uint16_t cluster) {
+void load_user_process(char* filename, uint16_t cluster, uint32_t cur_ip, uint32_t cur_sp) {
 
      Process_32* process = create_proc();
      if(process == NULL) return;
@@ -74,16 +74,19 @@ void load_user_process(char* filename, uint16_t cluster) {
         process->filename[i] = '\0';
         process->dir_cluster = 0;
         current_process = process;
-        start_user_process(process);
+        start_user_process(process, cur_ip, cur_sp);
 
     } 
 
 }
 
-void start_user_process(Process_32* process) {
+void start_user_process(Process_32* process, uint32_t cur_ip, uint32_t cur_sp) {
    
   
+    running_process->ip = cur_ip;
+    running_process->sp = cur_sp;
     process->parent = running_process;
+
     running_process = process;
     uint32_t user_stack_top = process->sp;
     switch_user_mode(user_stack_top, process->ip);
