@@ -10,16 +10,17 @@
 #include "../file_system/fat16.h"
 #include "../memory/elf_loader.h"
 #include "../process/process32.h"
+#include "../process/process_manager.h"
 
 
 
-void init_user(uint32_t user_entry) {
+uint32_t init_user_stack() {
 
      uint32_t user_stack = (uint32_t)fralloc_kernel(PAGE_SIZE * 2);
     uint32_t user_stack_top = user_stack + (2 * PAGE_SIZE);
 
-    switch_user_mode(user_stack_top, user_entry);
 
+    return user_stack_top;
 }
 
 
@@ -36,11 +37,18 @@ void main() {
    
     
      
-   
+    
+    Process_32* process = (Process_32*)halloc(sizeof(Process_32));
+
+    process->ip = (uint32_t)user_prog;
+    process->page_directory = page_directory;
+    process->sp = init_user_stack();
+    process->ready = true;
+
+    start_user_process(process);
 
 
 
-    init_user((uint32_t)user_prog);
 
 
    

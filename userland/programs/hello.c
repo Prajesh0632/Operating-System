@@ -8,7 +8,7 @@ void _start(void)
     print("Enter your name: ");
     scan("%s", name);
 
-    print("\nYour name is %s", name);
+    print("\nYour name is %s\n", name);
 
 
     sys_exit();

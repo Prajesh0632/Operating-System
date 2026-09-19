@@ -83,6 +83,7 @@ void load_user_process(char* filename, uint16_t cluster) {
 void start_user_process(Process_32* process) {
    
   
+    process->parent = running_process;
     running_process = process;
     uint32_t user_stack_top = process->sp;
     switch_user_mode(user_stack_top, process->ip);
@@ -90,6 +91,12 @@ void start_user_process(Process_32* process) {
 }
 
 
+void restart(Process_32* process) {
+
+loadPageDirectory((uint32_t*)virt_to_phys(process->page_directory));    
+switch_user_mode(process->sp, process->ip);
+
+}
 
 
 
@@ -99,17 +106,23 @@ void start_user_process(Process_32* process) {
 void exit_proc() {
 
 
+    
      
     Process_32* process = running_process;
     uint32_t* pd = process->page_directory;
 
+    Process_32* parent = process->parent;
+
     for(uint32_t i = 0; i < 1024; i++) {
 
+        
+        if (i == 0 || i >= 768) continue;
+
         if (!(pd[i] & PDE_PRESENT)) continue;
-        uint32_t *page_table = (uint32_t*)(pd[i] & 0xFFFFF000);
+        uint32_t *page_table = (uint32_t*)phys_to_virt(pd[i] & 0xFFFFF000);
 
         for(uint32_t j = 0; j < 1024; j++) {
-           
+
              if (!(page_table[j] & PTE_PRESENT)) continue;
             uint32_t physical_addr = page_table[j] & 0xFFFFF000;
             free((uint64_t*)(uintptr_t)physical_addr, PAGE_SIZE);
@@ -122,14 +135,18 @@ void exit_proc() {
 
         Vma* to_free = vma_ptr;
         vma_ptr = vma_ptr->next;
-        hfree((uint32_t*)vma_ptr);
+        hfree((uint32_t*)to_free);
     }
 
-    running_process = NULL;
-    
+    running_process = parent;
+    sprint("\nProgram Successfully Exited\n", -1, -1);
+
+    restart(running_process);
 
 
-            sprint("\nProgram Successfully Exited", -1, -1);
+
+
+            
 
 
 }

@@ -34,9 +34,9 @@
 
 
 
-typedef struct{
+typedef struct Process_32{
 
-    struct Process_32* parent;
+    struct  Process_32* parent;
     
 
     uint32_t pid;  // Process ID 
