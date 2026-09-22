@@ -11,6 +11,7 @@
 #include "../memory/elf_loader.h"
 #include "../process/process32.h"
 #include "../process/process_manager.h"
+#include "../graphics/vbe.h"
 
 
 
@@ -34,18 +35,20 @@ void main() {
     init_paging();
     init_tss((uint32_t)(_kernel_end + 0x200000));
     init_fat16();
+    init_graphics();
+
    
     
      
     
-    Process_32* process = (Process_32*)halloc(sizeof(Process_32));
+    // Process_32* process = (Process_32*)halloc(sizeof(Process_32));
 
-    process->ip = (uint32_t)user_prog;
-    process->page_directory = page_directory;
-    process->sp = init_user_stack();
-    process->ready = true;
+    // process->ip = (uint32_t)user_prog;
+    // process->page_directory = page_directory;
+    // process->sp = init_user_stack();
+    // process->ready = true;
 
-    start_user_process(process, 0, 0);
+    // start_user_process(process, 0, 0);
 
 
 

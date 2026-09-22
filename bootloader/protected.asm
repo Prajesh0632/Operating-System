@@ -20,6 +20,5 @@ clear_screen:
     ret
 
 
-%include "print_pm.asm"
 
 

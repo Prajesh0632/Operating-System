@@ -13,8 +13,9 @@ KERNEL_LOC equ 0x10000
     mov ss, ax
     mov sp, 0xFC00
 
-    mov bx, msg_rm 
-    call print_string 
+    
+
+    call get_vesa_info
 
     call load_kernel 
 
@@ -35,11 +36,7 @@ KERNEL_LOC equ 0x10000
 [bits 16]
 load_kernel:
     
-    mov bx, newline
-    call print_string
-
-    mov bx, msg_pm
-    call print_string
+  
 
 
     mov ax, KERNEL_LOC >> 4  ; es:bx = physical KERNEL_LOC (bx alone can't hold a 20-bit address)
@@ -60,22 +57,51 @@ load_kernel:
 
 
 
+get_vesa_info:
+   push es
+   mov ax, 0
+   mov es, ax
+   mov di, 0x7E00        ; free RAM right after the boot sector (0x7C00-0x7DFF)
+   mov word [es:di], 'VB'    ; write "VBE2" into the buffer at runtime --
+   mov word [es:di+2], 'E2'
+   mov ax, 0x4F00
+   int 0x10
+
+   cmp ax, 0x4F
+   jne .error
+
+   mov cx, 0x0118        ; 1024x768x24 -- reuse the same buffer for ModeInfoBlock
+   mov di, 0x7E00
+   mov ax, 0x4F01
+   int 0x10
+
+   cmp ax, 0x4F
+   jne .error
+
+   mov bx, 0x4118         ; mode 0x118 with bit 14 set = use linear framebuffer
+   mov ax, 0x4F02
+   int 0x10
+
+   cmp ax, 0x4F
+   jne .error
+
+   pop es
+   ret
+
+.error:
+   pop es
+   jmp $
 
 
-
-
-%include "print.asm"
 %include "disk.asm"
 %include "switch_32.asm"
 %include "../low level/detect_ram.asm"
 
 
-msg_rm : db "Booted into Real 16 bit-mode", 0
-msg_pm : db "Reading disk", 0 
-
-newline: db 0x0D,0x0A, 0 
+; newline: db 0x0D,0x0A, 0 
 
 BOOT_DRIVE_NUM: db 0
+
 
 times 510 - ($ - $$) db 0 
 dw 0xaa55    

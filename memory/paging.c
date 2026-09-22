@@ -122,3 +122,31 @@ void map_page(uint32_t vaddr, uint32_t* page_directory) {
 
 
 }
+
+void map_page_to(uint32_t vaddr, uint32_t paddr, uint32_t* page_directory) {
+
+
+
+    uint16_t pd_idx = (vaddr >> 22) & 0x03FF;
+    uint16_t pt_idx = (vaddr >> 12) & 0x03FF;
+
+    // Local, not the shared `page_table` global -- that global gets
+    // reassigned by every caller (including this one used to), so reusing
+    // it here would leave it pointing at whichever table was touched last.
+    uint32_t* table;
+
+    if (!(page_directory[pd_idx] & PDE_PRESENT)) {
+        uint32_t new_table = fralloc(PAGE_SIZE);
+        page_directory[pd_idx] = (new_table & 0xFFFFF000) | PDE_PRESENT | PDE_WRITABLE | PDE_USER;
+        table = (uint32_t*)phys_to_virt(new_table & 0xFFFFF000);
+    } else {
+        table = (uint32_t*)phys_to_virt(page_directory[pd_idx] & 0xFFFFF000);
+    }
+
+   
+    table[pt_idx] = (paddr & 0xFFFFF000) | PTE_PRESENT | PTE_WRITABLE | PTE_USER;
+
+
+
+
+}

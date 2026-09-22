@@ -58,12 +58,12 @@ disk_load:
 
 .done:
     mov bx, SUCCESS
-    call print_string
+    ; call print_string
     ret
 
 disk_error:
     mov bx, DISK_ERROR
-    call print_string
+    ; call print_string
     jmp $                          ; fatal: never fall through into an unloaded kernel
 
 sector_count : db 0
