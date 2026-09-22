@@ -38,22 +38,19 @@ void main() {
     init_fat16();
     init_graphics();
 
-    Color c = {255, 255, 0};
-    // put_pixel(100, 100, c);
-    write_text("                   HELLO, WORLD!", 100, 100, c, 2);
-
+    
    
     
      
     
-    // Process_32* process = (Process_32*)halloc(sizeof(Process_32));
+    Process_32* process = (Process_32*)halloc(sizeof(Process_32));
 
-    // process->ip = (uint32_t)user_prog;
-    // process->page_directory = page_directory;
-    // process->sp = init_user_stack();
-    // process->ready = true;
+    process->ip = (uint32_t)user_prog;
+    process->page_directory = page_directory;
+    process->sp = init_user_stack();
+    process->ready = true;
 
-    // start_user_process(process, 0, 0);
+    start_user_process(process, 0, 0);
 
 
 

@@ -2,22 +2,47 @@
 #include "font_psf1.h"
 #include "vbe.h"
 
-void write_text(char* text, uint32_t x, uint32_t y, Color color, uint32_t fontsize) {
+uint32_t x_pos = 0, y_pos = 0;
+
+void write_text(char* text) {
  
+    
+    uint32_t x = x_pos;
+    uint32_t y = y_pos;
+    Color color = {255, 255, 255};
 
     for(uint32_t i = 0; text[i] != '\0'; i++) {
 
             
 
-        write_c(text[i], x, y, color, fontsize);
-        x += fontsize * 8;
+        write_c(text[i], x, y,color, 1);
+        x += 8;
+        if(text[i] == '\n') {
+            x = 0;
+            y += 20;
+        }
+        if(text[i] == '\b') {
+            write_c(' ', x - 1, y, color, 1);
+        }
 
        
     }
+
+    x_pos = x;
+    y_pos = y;
+    if(x_pos > WINDOW_WIDTH) {
+        x_pos = 0; 
+        y_pos += 20;
+    }
+
     
 }
 
 void write_c(char c, uint32_t x, uint32_t y, Color color, uint32_t fontsize) {
+
+   
+
+    
     
     uint32_t x_orig = x;
     uint32_t y_orig = y;

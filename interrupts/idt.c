@@ -7,6 +7,8 @@
 #include "../file_system/fat16.h"
 #include "../memory/vmm.h"
 #include "../process/process_manager.h"
+#include "../graphics/font_renderer.h"
+#include "../graphics/colors.h"
 
 
 idt_t interrupts[MAX_INTR];
@@ -97,7 +99,8 @@ void handle_syscall(int type, int value, int extra, int extra1, uint32_t* regs) 
    switch(type) {
 
    case SYS_WRITE:
-        sprint((char*)value, -1, -1);
+       
+        write_text((char*)value);
         break;
 
    case SYS_READ: {

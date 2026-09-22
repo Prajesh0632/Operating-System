@@ -3,7 +3,7 @@
 #include "../screen_driver/screen.h"
 #include <stdbool.h>
 #include "../headers/string/str.h"
-
+#include "../graphics/font_renderer.h"
 uint32_t fat_start;
 uint32_t root_start;
 uint32_t root_sectors;
@@ -202,9 +202,9 @@ void list_dir(uint32_t cluster)
                 char name[12];
                 get_filename(name, e[i].name);
 
-                sprint(name, -1, -1);
+                write_text(name);
 
-                cprint('\n');
+                write_text("\n");
             }
         }
 
@@ -281,7 +281,8 @@ void display_file(DirEntry *file)
             uint32_t size = (remaining < bytes_per_sector) ? remaining : bytes_per_sector;
             for (uint32_t i = 0; i < size; i++)
             {
-                cprint(content[i]);
+                char s[2] = {content[i], '\0'};
+                write_text(s);
             }
 
             remaining -= size;
