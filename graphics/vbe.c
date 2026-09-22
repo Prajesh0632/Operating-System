@@ -45,9 +45,9 @@ void init_graphics()
         {
 
             uint32_t x = j, y = i;
-            Color c = {255, 255, 255};
+            Color c = {0, 0, 0};
             put_pixel(x, y, c);
-            
+
         }
     }
 }

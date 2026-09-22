@@ -12,6 +12,7 @@
 #include "../process/process32.h"
 #include "../process/process_manager.h"
 #include "../graphics/vbe.h"
+#include "../graphics/font_renderer.h"
 
 
 
@@ -36,6 +37,10 @@ void main() {
     init_tss((uint32_t)(_kernel_end + 0x200000));
     init_fat16();
     init_graphics();
+
+    Color c = {255, 255, 0};
+    // put_pixel(100, 100, c);
+    write_text("                   HELLO, WORLD!", 100, 100, c, 2);
 
    
     

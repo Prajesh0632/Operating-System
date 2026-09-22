@@ -37,6 +37,8 @@ TEXT_EDITOR="command_shell/text_editor.c"
 DISK_RW="file_system/ata.c"
 FAT16="file_system/fat16.c"
 VBE="graphics/vbe.c"
+FONT_PSF1="graphics/font_psf1.c"
+FONT_RENDERER="graphics/font_renderer.c"
 
 
 
@@ -91,6 +93,12 @@ gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $FAT16 -o fat16.o
 echo "Compiling vbe.c -> vbe.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $VBE -o vbe.o
 
+echo "Compiling font_psf1.c -> font_psf1.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $FONT_PSF1 -o font_psf1.o
+
+echo "Compiling font_renderer.c -> font_renderer.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $FONT_RENDERER -o font_renderer.o
+
 echo "Compiling user.c -> user.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $USER_FILE -o user.o
 
@@ -130,7 +138,7 @@ nasm -f elf32 $USER_ENTRY -o user_entry.o
 
 
 echo "Linking kernel with interrupts at 0x10000 -> kernel.bin"
-ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o text_editor.o memory.o heap.o e_paging.o paging.o elf_loader.o vmm.o mem_util.o process32.o process_manager.o tss.o user.o user_entry.o user_switch.o system_calls.o stio.o str.o ata.o fat16.o vbe.o -o kernel.bin
+ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o text_editor.o memory.o heap.o e_paging.o paging.o elf_loader.o vmm.o mem_util.o process32.o process_manager.o tss.o user.o user_entry.o user_switch.o system_calls.o stio.o str.o ata.o fat16.o vbe.o font_psf1.o font_renderer.o -o kernel.bin
 
 
 
@@ -160,4 +168,3 @@ env -i HOME="$HOME" DISPLAY="$DISPLAY" XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthori
     -drive file=boot.img,format=raw,index=0,if=floppy \
     -drive file="$HDD_FILE",format=raw,if=ide,index=0,media=disk \
     -no-reboot
-    -
