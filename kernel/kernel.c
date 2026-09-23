@@ -41,6 +41,8 @@ void main() {
 
     draw_line(5, 5, 100, 100, COLOR_RED, 1);
     draw_rect_fill(50, 50, 100, 100, COLOR_GREEN, 1);
+    draw_circle(500, 500, 100, COLOR_BLUE, 1);
+    draw_circle_fill(200, 200, 100, COLOR_RED, 1);
 
     
    
