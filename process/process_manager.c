@@ -52,6 +52,15 @@ Process_32* create_proc() {
     // the GDT/TSS as ordinary data either.
     process->page_directory[0] = page_directory[0] & ~PDE_USER;
 
+    // Framebuffer window: init_graphics() maps the real video LFB into the
+    // kernel's page_directory at a fixed virtual address just past the
+    // identity-mapped RAM (see graphics/vbe.c), computed the same way here
+    // -- not covered by either copy above, so any process-context code that
+    // draws to the screen (e.g. the sys_write output path) would page-fault
+    // under this directory without this entry.
+    uint32_t fb_pd_idx = (frames + 1023) / 1024;
+    process->page_directory[fb_pd_idx] = page_directory[fb_pd_idx] & ~PDE_USER;
+
     loadPageDirectory((uint32_t*)virt_to_phys(process->page_directory));
 
 

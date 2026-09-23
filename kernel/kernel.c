@@ -13,6 +13,7 @@
 #include "../process/process_manager.h"
 #include "../graphics/vbe.h"
 #include "../graphics/font_renderer.h"
+#include "../graphics/grphc.h"
 
 
 
@@ -38,19 +39,22 @@ void main() {
     init_fat16();
     init_graphics();
 
+    draw_line(5, 5, 100, 100, COLOR_RED, 1);
+    draw_rect_fill(50, 50, 100, 100, COLOR_GREEN, 1);
+
     
    
     
      
     
-    Process_32* process = (Process_32*)halloc(sizeof(Process_32));
+    // Process_32* process = (Process_32*)halloc(sizeof(Process_32));
 
-    process->ip = (uint32_t)user_prog;
-    process->page_directory = page_directory;
-    process->sp = init_user_stack();
-    process->ready = true;
+    // process->ip = (uint32_t)user_prog;
+    // process->page_directory = page_directory;
+    // process->sp = init_user_stack();
+    // process->ready = true;
 
-    start_user_process(process, 0, 0);
+    // start_user_process(process, 0, 0);
 
 
 

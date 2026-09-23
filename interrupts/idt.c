@@ -114,7 +114,7 @@ void handle_syscall(int type, int value, int extra, int extra1, uint32_t* regs) 
         break;
 
    case SYS_SCLEAR:
-        cls();
+        clear_scr();
         break;
 
    case SYS_FLIST:

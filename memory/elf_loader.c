@@ -10,6 +10,7 @@
 #include "memory.h"
 #include "paging.h"
 #include "vmm.h"
+#include "../graphics/font_renderer.h"
 
 /* FAT16 primitives that aren't in fat16.h (defined in fat16.c) */
 extern uint32_t bytes_per_sector;
@@ -39,7 +40,7 @@ void load_program(const char *name, uint16_t dir_cluster, Process_32 *process)
 
     if (!fat_find(name, dir_cluster, &De))
     {
-        sprint("Cannot find the file specified.\n", -1, -1);
+        write_text("Cannot find the file specified.\n");
         return;
     }
 
@@ -48,7 +49,7 @@ void load_program(const char *name, uint16_t dir_cluster, Process_32 *process)
 
     if (!fat_read(&De, content, De.size))
     {
-        sprint("Cannot read file.\n", -1, -1);
+        write_text("Cannot read file.\n");
         return;
     }
 
@@ -56,13 +57,13 @@ void load_program(const char *name, uint16_t dir_cluster, Process_32 *process)
 
     if (hddr->e_ident[0] != 0x7F || hddr->e_ident[1] != 'E' || hddr->e_ident[2] != 'L' || hddr->e_ident[3] != 'F')
     {
-        sprint("Not an elf file.\n", -1, -1);
+        write_text("Not an elf file.\n");
         return;
     }
 
     if (hddr->e_phnum == 0)
     {
-        sprint("No Program header found.\n", -1, -1);
+        write_text("No Program header found.\n");
         return;
     }
 
