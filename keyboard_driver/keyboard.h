@@ -36,3 +36,4 @@ static const char lower_keyboard_map[] = {
   char key_dequeue();
   void clear_ring();
   char get_pressed_char();
+  char get_pressed_unpressed();

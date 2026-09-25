@@ -38,6 +38,7 @@
 
 
 
+extern bool clear;
 
 
 void sprint(char*, int, int);
@@ -67,6 +68,7 @@ void idt_set_descriptor(int, void*, uint8_t);
 void init_idt();
 void PIC_remap(int, int);
 
+void init_pit(uint32_t);
 
 void handle_interrupt(int, int);
 

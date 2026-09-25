@@ -108,3 +108,30 @@ char get_pressed_char() {
                 return 0;
             }
 }
+
+
+
+char get_pressed_unpressed() {
+
+        uint8_t key_code = port_byte_in(0x60);
+        char key;
+
+         if(!(key_code & 0x80)) {
+            
+             key = upper_keyboard_map[key_code];
+
+
+         }
+
+         else {
+
+            key = lower_keyboard_map[key_code];
+
+         }
+
+
+         return key;
+
+
+
+}

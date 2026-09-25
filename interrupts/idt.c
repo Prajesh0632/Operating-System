@@ -10,6 +10,8 @@
 #include "../graphics/font_renderer.h"
 #include "../graphics/colors.h"
 
+bool clear = false;
+int counter = 4;
 
 idt_t interrupts[MAX_INTR];
 static idtr_t idtr;
@@ -86,10 +88,39 @@ void handle_interrupt(int vector, int error_code) {
            
         } 
 
+        if(vector == 32) {
+          
+          clear = true;
+          
+        }
+
+
 
         if(vector >= 32 && vector <= 47) send_EOI(vector - 32);
 
 
+}
+
+
+void init_pit(uint32_t frequency) {
+     // 1. Calculate the 16-bit divisor
+    uint32_t divisor = 1193182 / frequency;
+    
+    // Clamp the divisor if it exceeds 16-bit bounds
+    if (divisor > 0xFFFF) divisor = 0xFFFF;
+    if (divisor < 1)      divisor = 1;
+
+    // 2. Send the Command Byte to Port 0x43
+    // Bits 7-6: 00  (Select Channel 0)
+    // Bits 5-4: 11  (Access mode: Lobyte/Hibyte)
+    // Bits 3-1: 011 (Mode 3: Square Wave Generator)
+    // Bit 0   : 0   (Binary counter)
+    // 00110110b = 0x36
+    port_byte_out(0x43, 0x36);
+
+    // 3. Send the Divisor to Port 0x40 (Low byte first, then High byte)
+    port_byte_out(0x40, (uint8_t)(divisor & 0xFF));        // Low byte
+    port_byte_out(0x40, (uint8_t)((divisor >> 8) & 0xFF)); // High byte
 }
 
 
@@ -178,6 +209,8 @@ void handle_syscall(int type, int value, int extra, int extra1, uint32_t* regs) 
 
 
 void send_EOI(uint8_t irq) {
+
+     
  
     if(irq >= 8)
 		port_byte_out(PIC2_COMMAND,PIC_EOI);

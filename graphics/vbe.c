@@ -2,11 +2,15 @@
 #include "../screen_driver/screen.h"
 #include "../memory/paging.h"
 #include "../memory/pmm.h"
+#include "../memory/memory.h"
 #include <stddef.h>
+
+uint8_t* back_buffer = NULL;
 
 uint8_t *framebuffer = NULL;
 uint8_t bpp = 0;
 uint16_t pitch = 0;
+uint32_t fb_size = 0;
 
 void init_graphics()
 {
@@ -22,6 +26,9 @@ void init_graphics()
     uint32_t paddr_base = align_down(display->framebuffer);
     uint32_t fb_bytes = (uint32_t)display->pitch * display->height;
     uint32_t num_pages = (fb_bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+    fb_size = fb_bytes;
+
+    
 
     uint32_t page_directory_size = (frames + 1023) / 1024;
     uint32_t vaddr_base = page_directory_size * 0x400000;
@@ -34,6 +41,21 @@ void init_graphics()
     }
 
     framebuffer = (uint8_t *)vaddr_base;
+
+    // Back buffer: fresh RAM frames (not MMIO), mapped page by page into the
+    // virtual range right after the framebuffer so it's contiguous.
+    uint32_t back_vaddr = vaddr_base + num_pages * PAGE_SIZE;
+    for (uint32_t p = 0; p < num_pages; p++)
+    {
+        uint64_t frame = fralloc(PAGE_SIZE);
+        if (frame == (uint64_t)-1) return;
+
+        uint32_t vaddr = back_vaddr + p * PAGE_SIZE;
+        map_page_to(vaddr, (uint32_t)frame, page_directory);
+        invlpg(vaddr);
+    }
+
+    back_buffer = (uint8_t *)back_vaddr;
 
     bpp = display->bpp / 8;
 
@@ -58,8 +80,13 @@ void put_pixel(uint32_t x, uint32_t y, Color color)
     // if(!framebuffer || !pitch || !bpp) return;
 
     // pixel (x, y), assuming BGR order (typical for VBE direct-color modes)
-    uint8_t *pixel = framebuffer + y * pitch + x * bpp;
+    uint8_t *pixel = back_buffer + y * pitch + x * bpp;
     pixel[0] = color.blue;
     pixel[1] = color.green;
     pixel[2] = color.red;
+}
+
+
+void present() {
+    memcpy((void*)framebuffer, (void*)back_buffer, fb_size);
 }
