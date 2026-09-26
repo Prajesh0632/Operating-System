@@ -15,6 +15,7 @@
 #include "../graphics/font_renderer.h"
 #include "../graphics/grphc.h"
 #include "../graphics/inputs.h"
+#include "../keyboard_driver/scancodes.h"
 
 
 
@@ -39,32 +40,31 @@ void main() {
     init_tss((uint32_t)(_kernel_end + 0x200000));
     init_fat16();
     init_graphics();
-    init_pit(100);
+    init_pit(1000);
 
 
 
     
     int x = 50, y = 50;
-    int dir = 1;
+    int dir = 0;
 
     while(true) {
 
-    char c = read_keystroke();
+    int speed = 3;
+    if(is_pressed(SC_A) && x > 50) x -= speed;
+    if(is_pressed(SC_D) && x < 800) x += speed;
+    if(is_pressed(SC_W) && y > 50) y -= speed;
+    if(is_pressed(SC_S) && y < 600) y += speed;
 
-    if(x <= 50) {
-        dir = 1;
-    }
-    if(x >= 800) dir = -1;
 
-    x += dir * 20;
-
-    clear_scr();
+   clear_scr();
     // draw_line(5, 5, 100, 100, COLOR_RED, 1);
     draw_rect_fill(x, y, 100, 100, COLOR_GREEN, 1);
     // draw_circle(500, 500, 100, COLOR_BLUE, 1);
     // draw_circle_fill(200, 200, 100, COLOR_RED, 1);
 
-    present();
+    
+   if(update_screen) {present(); update_screen = false;}
     
    
 

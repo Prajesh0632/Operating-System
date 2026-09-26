@@ -9,6 +9,9 @@ bool CAPS_LOCK;
 bool SHIFT_PRESS;
 bool CTRL_PRESS;
 
+volatile bool key_down[128] = {false};
+
+
   
 static volatile char ring_queue[KEY_MAX];
 static volatile int head = 0;//only keyboard isr writes to it
@@ -85,6 +88,7 @@ char get_pressed_char() {
 
 
                 
+                key_down[key_code] = true;
 
                 char key = !press ? lower_keyboard_map[key_code] : upper_keyboard_map[key_code];
                 if(CTRL_PRESS && (key == 's' || key == 'S')) return 0x13;
@@ -96,6 +100,9 @@ char get_pressed_char() {
 
 
             else {
+
+                key_down[key_code & 0x7F] = false;
+
                 if(key_code == 0xAA|| key_code == 0xB6) {
                     SHIFT_PRESS = false;
                 }
@@ -110,28 +117,3 @@ char get_pressed_char() {
 }
 
 
-
-char get_pressed_unpressed() {
-
-        uint8_t key_code = port_byte_in(0x60);
-        char key;
-
-         if(!(key_code & 0x80)) {
-            
-             key = upper_keyboard_map[key_code];
-
-
-         }
-
-         else {
-
-            key = lower_keyboard_map[key_code];
-
-         }
-
-
-         return key;
-
-
-
-}

@@ -38,7 +38,7 @@
 
 
 
-extern bool clear;
+extern bool update_screen;
 
 
 void sprint(char*, int, int);

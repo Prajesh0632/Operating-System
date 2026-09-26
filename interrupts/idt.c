@@ -10,8 +10,10 @@
 #include "../graphics/font_renderer.h"
 #include "../graphics/colors.h"
 
-bool clear = false;
-int counter = 4;
+const int fps = 165;
+
+bool update_screen = false;
+int counter = 1000 / fps;
 
 idt_t interrupts[MAX_INTR];
 static idtr_t idtr;
@@ -90,7 +92,11 @@ void handle_interrupt(int vector, int error_code) {
 
         if(vector == 32) {
           
-          clear = true;
+          counter--;
+          if(counter < 1) {
+               update_screen = true;
+               counter = 1000 / fps;
+          }
           
         }
 

@@ -171,7 +171,7 @@ if [ ! -f "$HDD_FILE" ]; then
 fi
 
 echo "Launching QEMU (serial to stdio)"
-env -i HOME="$HOME" DISPLAY="$DISPLAY" XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}" /usr/bin/qemu-system-i386  -m 1024\
+env -i HOME="$HOME" DISPLAY="$DISPLAY" XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}" /usr/bin/qemu-system-i386  -enable-kvm -m 1024\
     -boot order=a \
     -drive file=boot.img,format=raw,index=0,if=floppy \
     -drive file="$HDD_FILE",format=raw,if=ide,index=0,media=disk \

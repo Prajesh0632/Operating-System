@@ -1,7 +1,7 @@
 #pragma once 
-
+#include "../keyboard_driver/scancodes.h"
 
 //Keyboard and Mouse inputs for the graphics 
 
-char read_keystroke();
+char is_pressed(Scancode);
 

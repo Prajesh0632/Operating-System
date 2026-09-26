@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "scancodes.h"
 
 #define BUFFER_SIZE 256
 #define KEY_MAX 128 
@@ -10,6 +11,8 @@
 
 extern bool CAPS_LOCK;
 extern bool SHIFT_PRESS;
+
+extern volatile bool key_down[128];
 
 
 
