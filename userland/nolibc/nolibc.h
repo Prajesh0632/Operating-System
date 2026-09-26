@@ -55,5 +55,6 @@ void     sys_fdelete(uint16_t cluster, char *filename);
 uint16_t sys_fcd(uint16_t cluster, char *path);
 void     sys_fmkdir(uint16_t cluster, char *dirname);
 void     sys_fwrite(uint16_t cluster, char *filename, char *content);
+void     sys_load_program(uint16_t cluster, char *filename);
 
 void sys_exit();

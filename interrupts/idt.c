@@ -9,6 +9,7 @@
 #include "../process/process_manager.h"
 #include "../graphics/font_renderer.h"
 #include "../graphics/colors.h"
+#include "../graphics/vbe.h"
 
 const int fps = 165;
 
@@ -138,6 +139,7 @@ void handle_syscall(int type, int value, int extra, int extra1, uint32_t* regs) 
    case SYS_WRITE:
        
         write_text((char*)value);
+        present();
         break;
 
    case SYS_READ: {

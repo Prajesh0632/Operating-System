@@ -43,7 +43,7 @@ load_kernel:
     mov es, ax
     xor bx, bx
     mov dl, [BOOT_DRIVE_NUM]
-    mov al, 120
+    mov al, 200
 
 
 

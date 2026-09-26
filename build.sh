@@ -41,6 +41,7 @@ FONT_PSF1="graphics/font_psf1.c"
 FONT_RENDERER="graphics/font_renderer.c"
 GRPHC="graphics/grphc.c"
 INPUTS="graphics/inputs.c"
+BITMAP="graphics/bitmap.c"
 
 
 
@@ -107,6 +108,9 @@ gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $GRPHC -o grphc.o
 echo "Compiling inputs.c -> inputs.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $INPUTS -o inputs.o
 
+echo "Compiling bitmap.c -> bitmap.o"
+gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $BITMAP -o bitmap.o
+
 echo "Compiling user.c -> user.o"
 gcc -m32 -ffreestanding -fno-builtin -fno-pie -fno-pic -O2 -c $USER_FILE -o user.o
 
@@ -146,7 +150,7 @@ nasm -f elf32 $USER_ENTRY -o user_entry.o
 
 
 echo "Linking kernel with interrupts at 0x10000 -> kernel.bin"
-ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o text_editor.o memory.o heap.o e_paging.o paging.o elf_loader.o vmm.o mem_util.o process32.o process_manager.o tss.o user.o user_entry.o user_switch.o system_calls.o stio.o str.o ata.o fat16.o vbe.o font_psf1.o font_renderer.o grphc.o inputs.o -o kernel.bin
+ld -m elf_i386 -T linker.ld --oformat binary kernel_entry.o kernel.o idt.o interrupt.o screen.o io.o keyboard.o shell.o text_editor.o memory.o heap.o e_paging.o paging.o elf_loader.o vmm.o mem_util.o process32.o process_manager.o tss.o user.o user_entry.o user_switch.o system_calls.o stio.o str.o ata.o fat16.o vbe.o font_psf1.o font_renderer.o grphc.o inputs.o bitmap.o -o kernel.bin
 
 
 

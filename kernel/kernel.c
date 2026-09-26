@@ -16,13 +16,14 @@
 #include "../graphics/grphc.h"
 #include "../graphics/inputs.h"
 #include "../keyboard_driver/scancodes.h"
+#include "../graphics/bitmap.h"
 
 
 
 uint32_t init_user_stack() {
 
-     uint32_t user_stack = (uint32_t)fralloc_kernel(PAGE_SIZE * 2);
-    uint32_t user_stack_top = user_stack + (2 * PAGE_SIZE);
+     uint32_t user_stack = (uint32_t)fralloc_kernel(PAGE_SIZE *4);
+    uint32_t user_stack_top = user_stack + (4 * PAGE_SIZE);
 
 
     return user_stack_top;
@@ -45,32 +46,36 @@ void main() {
 
 
     
-    int x = 50, y = 50;
-    int dir = 0;
+//     int x = 50, y = 50;
+//     int dir = 0;
 
-    while(true) {
+//     while(true) {
 
-    int speed = 3;
-    if(is_pressed(SC_A) && x > 50) x -= speed;
-    if(is_pressed(SC_D) && x < 800) x += speed;
-    if(is_pressed(SC_W) && y > 50) y -= speed;
-    if(is_pressed(SC_S) && y < 600) y += speed;
+//     int speed = 3;
+//     if(is_pressed(SC_A) && x > 50) x -= speed;
+//     if(is_pressed(SC_D) && x < 800) x += speed;
+//     if(is_pressed(SC_W) && y > 50) y -= speed;
+//     if(is_pressed(SC_S) && y < 600) y += speed;
 
 
-   clear_scr();
-    // draw_line(5, 5, 100, 100, COLOR_RED, 1);
-    draw_rect_fill(x, y, 100, 100, COLOR_GREEN, 1);
-    // draw_circle(500, 500, 100, COLOR_BLUE, 1);
-    // draw_circle_fill(200, 200, 100, COLOR_RED, 1);
+//    clear_scr();
+//     // draw_line(5, 5, 100, 100, COLOR_RED);
+//     draw_rect_fill(x, y, 100, 100, COLOR_GREEN);
+//     // draw_circle(500, 500, 100, COLOR_BLUE);
+//     // draw_circle_fill(200, 200, 100, COLOR_RED);
 
     
-   if(update_screen) {present(); update_screen = false;}
+//    if(update_screen) {present(); update_screen = false;}
     
    
 
-    }
+//     }
 
-    write_text("Program Exited\n");
+//     write_text("Program Exited\n");
+
+
+init_image("IMAGE.BMP", 0);
+present();
 
    
     
