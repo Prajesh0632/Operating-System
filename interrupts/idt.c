@@ -11,7 +11,7 @@
 #include "../graphics/colors.h"
 #include "../graphics/vbe.h"
 
-const int fps = 165;
+const int fps = 120;
 
 bool update_screen = false;
 int counter = 1000 / fps;

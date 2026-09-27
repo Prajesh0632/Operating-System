@@ -1,7 +1,7 @@
 #include "vmm.h"
 #include "pmm.h"
 #include "paging.h"
-#include "../process/process32.h"
+#include "../process/process_manager.h"
 #include "../file_system/fat16.h"
 #include "elf_loader.h"
 #include "elf.h"
@@ -49,7 +49,7 @@ void vmm_handle_pagefault(uint32_t vaddr) {
    
    
 
-    Process_32* process = current_process;
+    Process_32* process = running_process;
     
 
     Vma* temp_vma = process->vma_list;

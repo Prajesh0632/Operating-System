@@ -3,6 +3,7 @@
 #include "../memory/paging.h"
 #include "../memory/pmm.h"
 #include "../memory/memory.h"
+#include "font_renderer.h"
 #include <stddef.h>
 
 uint8_t* back_buffer = NULL;
@@ -81,12 +82,24 @@ void put_pixel(uint32_t x, uint32_t y, Color color)
 
     // pixel (x, y), assuming BGR order (typical for VBE direct-color modes)
     uint8_t *pixel = back_buffer + y * pitch + x * bpp;
-    pixel[0] = color.blue;
-    pixel[1] = color.green;
-    pixel[2] = color.red;
+
+    pixel[0] = (pixel[0] * (255 - color.alpha) + color.blue * color.alpha) / 255;
+    pixel[1] = (pixel[1] * (255 - color.alpha) + color.green * color.alpha) / 255;
+    pixel[2] = (pixel[2] * (255 - color.alpha) + color.red * color.alpha) / 255;
+
 }
-
-
 void present() {
     memcpy((void*)framebuffer, (void*)back_buffer, fb_size);
+}
+
+void clear_scr() {
+
+    for(uint32_t i = 0; i < WINDOW_WIDTH; i++) {
+        for(uint32_t j = 0; j < WINDOW_HEIGHT; j++) {
+            put_pixel(i, j, COLOR_BLACK);
+         }
+    }
+
+    x_pos = 0;
+    y_pos = 0;
 }

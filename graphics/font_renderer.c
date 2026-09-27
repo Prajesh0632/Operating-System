@@ -105,17 +105,4 @@ void clear_c(uint32_t x, uint32_t y, uint32_t fontsize) {
         y++;
     }
 
-}    
-
-
-void clear_scr() {
-
-    for(uint32_t i = 0; i < WINDOW_WIDTH; i++) {
-        for(uint32_t j = 0; j < WINDOW_HEIGHT; j++) {
-            put_pixel(i, j, COLOR_BLACK);
-         }
-    }
-
-    x_pos = 0;
-    y_pos = 0;
 }

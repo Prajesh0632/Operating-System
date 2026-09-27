@@ -52,3 +52,4 @@ typedef struct vbe_mode_info_structure {
 void init_graphics();
 void put_pixel(uint32_t, uint32_t, Color);
 void present();
+void clear_scr();

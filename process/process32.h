@@ -51,9 +51,16 @@ typedef struct Process_32{
     
 
 
-    uint32_t* page_directory;// Process Page Directory  
+    uint32_t* page_directory;// Process Page Directory
     char filename[16];
     uint32_t dir_cluster;
+
+    // x87 FPU register state (fsave/frstor image, 108 bytes) -- saved when
+    // this process is suspended (see start_user_process) and restored when
+    // it resumes (see restart), so one process's floating point doesn't
+    // corrupt another's. Nothing enables SSE (CR4.OSFXSR is never set), so
+    // fsave/frstor is the right pair here, not fxsave/fxrstor.
+    uint8_t fpu_state[108];
 
 
     Vma* vma_list;

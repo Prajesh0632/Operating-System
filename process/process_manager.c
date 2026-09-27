@@ -11,6 +11,14 @@
 Process_32* running_process = NULL;
 uint32_t process_id = 0;
 
+static inline void fpu_save(uint8_t* buf) {
+    __asm__ volatile ("fsave (%0)" :: "r"(buf) : "memory");
+}
+
+static inline void fpu_restore(uint8_t* buf) {
+    __asm__ volatile ("frstor (%0)" :: "r"(buf));
+}
+
 
 
 
@@ -63,6 +71,10 @@ Process_32* create_proc() {
 
     loadPageDirectory((uint32_t*)virt_to_phys(process->page_directory));
 
+    // Give the new process a clean FPU state instead of inheriting
+    // whatever the FPU happens to hold from whoever ran last.
+    __asm__ volatile ("fninit");
+    fpu_save(process->fpu_state);
 
     process->ready = false;
     return process;
@@ -82,7 +94,7 @@ void load_user_process(char* filename, uint16_t cluster, uint32_t cur_ip, uint32
         for(i; filename[i] != '\0'; i++) process->filename[i] = filename[i];
         process->filename[i] = '\0';
         process->dir_cluster = 0;
-        current_process = process;
+        running_process = process;
         start_user_process(process, cur_ip, cur_sp);
 
     } 
@@ -94,6 +106,7 @@ void start_user_process(Process_32* process, uint32_t cur_ip, uint32_t cur_sp) {
   
     running_process->ip = cur_ip;
     running_process->sp = cur_sp;
+    fpu_save(running_process->fpu_state);
     process->parent = running_process;
 
     running_process = process;
@@ -105,7 +118,8 @@ void start_user_process(Process_32* process, uint32_t cur_ip, uint32_t cur_sp) {
 
 void restart(Process_32* process) {
 
-loadPageDirectory((uint32_t*)virt_to_phys(process->page_directory));    
+loadPageDirectory((uint32_t*)virt_to_phys(process->page_directory));
+fpu_restore(process->fpu_state);
 switch_user_mode(process->sp, process->ip);
 
 }
