@@ -1,3 +1,4 @@
+#pragma once
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -25,11 +26,14 @@ typedef struct {
 } __attribute__((packed)) Heap;
 
 void init_heap(void);
-uint8_t allocate_frame(void);
+uint8_t allocate_frame(Heap*, int*, uint32_t*);
 void* halloc(uint64_t);
-uint64_t alloc(uint64_t, int);
+uint64_t alloc(uint64_t, int, Heap*);
 uint64_t realloc(HeapNode*, uint64_t);
 uint8_t hfree(void*);
 void merge_nodes(HeapNode*, HeapNode*);
+
+uint8_t allocate_process_frame();
+void* process_halloc(uint64_t);
 
 

@@ -7,6 +7,7 @@
 #include "elf.h"
 #include "memory.h"
 #include "../screen_driver/screen.h"
+#include "../graphics/font_renderer.h"
 
 
 
@@ -63,7 +64,24 @@ void vmm_handle_pagefault(uint32_t vaddr) {
 
     }
 
-    if(!temp_vma) return;
+
+
+
+    if(!temp_vma)  {
+    
+    if(vaddr >= process->hp_start && vaddr <= process->hp_end ) {
+        map_page(vaddr, process->page_directory) ;
+        
+        invlpg(vaddr);
+        
+    }
+
+    return;
+
+    }
+
+
+
 
     for(uint32_t p = 0; p < temp_vma->pages_required; p++) {
           
@@ -72,7 +90,9 @@ void vmm_handle_pagefault(uint32_t vaddr) {
 
     }
 
+
     if(temp_vma->inFile) {
+
 
         DirEntry De;
 
@@ -104,13 +124,27 @@ void vmm_handle_pagefault(uint32_t vaddr) {
 
 }
 
+
 else {
 
-  for(uint32_t i = 0; i < temp_vma->pages_required; i++) {
+
+  if(temp_vma) {
+
+
+     for(uint32_t i = 0; i < temp_vma->pages_required; i++) {
     uint32_t cur_vaddr = temp_vma->v_start + i * PAGE_SIZE;
     map_page(cur_vaddr, process->page_directory);
 
   }
+
+  }
+
+  else {
+
+   
+  }
+
+ 
     
 
 }

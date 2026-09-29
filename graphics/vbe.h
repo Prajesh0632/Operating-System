@@ -49,7 +49,12 @@ typedef struct vbe_mode_info_structure {
 	uint8_t reserved1[206];
 }__attribute__ ((packed)) vbe_mode_info_structure;
 
+
+extern uint8_t* back_buffer;
+extern uint32_t fb_size;
+
 void init_graphics();
 void put_pixel(uint32_t, uint32_t, Color);
 void present();
 void clear_scr();
+void present_process(void*);

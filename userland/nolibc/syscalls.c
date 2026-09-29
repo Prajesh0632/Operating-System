@@ -83,3 +83,12 @@ void sys_exit()
 {
     asm volatile("int $0x80" :: "a"(SYS_EXIT));
 }
+
+
+void* sys_brk(uint32_t size) {
+
+    uint32_t vaddr;
+    asm volatile("int $0x80" :: "a"(SYS_BRK), "b"(size), "c"(&vaddr) : "memory");
+    return (void*)vaddr;
+
+}

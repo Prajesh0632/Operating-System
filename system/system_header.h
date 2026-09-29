@@ -24,6 +24,11 @@ typedef enum {
     SYS_FORK,
     SYS_EXEC,
     SYS_EXIT,
+
+    //Memory 
+    SYS_BRK,
+    SYS_SBRK,
+    
     
 
 } SyscallId;

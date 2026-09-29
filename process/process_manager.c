@@ -7,6 +7,10 @@
 #include "../memory/vmm.h"
 #include "../screen_driver/screen.h"
 #include <stdbool.h>
+#include "../graphics/font_renderer.h"
+#include "../memory/memory.h"
+#include "../graphics/vbe.h"
+
 
 Process_32* running_process = NULL;
 uint32_t process_id = 0;
@@ -30,6 +34,7 @@ Process_32* create_proc() {
     Process_32* process = (Process_32*)halloc(sizeof(Process_32));
     process->pid = 100;
     process->page_directory = (uint32_t*)fralloc_kernel(1024 * 4);
+    process->current_heaps = 0;
 
     // fralloc'd memory isn't zeroed -- entries we don't explicitly set below
     // must be marked not-present ourselves, or they hold whatever garbage
@@ -60,15 +65,30 @@ Process_32* create_proc() {
     // the GDT/TSS as ordinary data either.
     process->page_directory[0] = page_directory[0] & ~PDE_USER;
 
-    // Framebuffer window: init_graphics() maps the real video LFB into the
-    // kernel's page_directory at a fixed virtual address just past the
-    // identity-mapped RAM (see graphics/vbe.c), computed the same way here
-    // -- not covered by either copy above, so any process-context code that
-    // draws to the screen (e.g. the sys_write output path) would page-fault
-    // under this directory without this entry.
+    // Framebuffer window: init_graphics() maps the real video LFB *and* the
+    // global back buffer into the kernel's page_directory, back-to-back,
+    // starting at a fixed virtual address just past the identity-mapped RAM
+    // (see graphics/vbe.c) -- not covered by either copy above, so any
+    // process-context code that draws to the screen (e.g. the sys_write
+    // output path) would page-fault under this directory without this
+    // entry.
+    //
+    // The two regions combined can span more than one page table's worth of
+    // virtual space (4MB), so copy every PDE they touch, not just the first
+    // -- copying only fb_pd_idx left the tail of the global back buffer
+    // unmapped here, so reading past the 4MB boundary (e.g. seeding a new
+    // process's own back buffer from it) faulted with no matching VMA to
+    // resolve it against and crashed.
     uint32_t fb_pd_idx = (frames + 1023) / 1024;
-    process->page_directory[fb_pd_idx] = page_directory[fb_pd_idx] & ~PDE_USER;
+    uint32_t fb_pd_count = ((uint64_t)fb_size * 2 + (1024 * PAGE_SIZE) - 1) / (1024 * PAGE_SIZE);
+    for (uint32_t k = 0; k < fb_pd_count; k++) {
+        process->page_directory[fb_pd_idx + k] = page_directory[fb_pd_idx + k] & ~PDE_USER;
+    }
 
+
+    
+
+\
     loadPageDirectory((uint32_t*)virt_to_phys(process->page_directory));
 
     // Give the new process a clean FPU state instead of inheriting
@@ -84,7 +104,12 @@ Process_32* create_proc() {
 
 void load_user_process(char* filename, uint16_t cluster, uint32_t cur_ip, uint32_t cur_sp) {
 
+    
+    
+
      Process_32* process = create_proc();
+     
+    
      if(process == NULL) return;
     load_program(filename, cluster, process);
 
@@ -94,22 +119,29 @@ void load_user_process(char* filename, uint16_t cluster, uint32_t cur_ip, uint32
         for(i; filename[i] != '\0'; i++) process->filename[i] = filename[i];
         process->filename[i] = '\0';
         process->dir_cluster = 0;
-        running_process = process;
         start_user_process(process, cur_ip, cur_sp);
 
-    } 
+    }
 
 }
 
 void start_user_process(Process_32* process, uint32_t cur_ip, uint32_t cur_sp) {
    
-  
+
     running_process->ip = cur_ip;
     running_process->sp = cur_sp;
     fpu_save(running_process->fpu_state);
     process->parent = running_process;
 
     running_process = process;
+
+    // Seed the new process's own back buffer with what's currently on
+    // screen so it doesn't start out blank -- must happen after
+    // running_process switches to `process`, since vmm_handle_pagefault
+    // resolves faults (this buffer is only lazily mapped) against
+    // running_process's own VMA list.
+    memcpy((void*)process->back_buffer, (void*)process->parent->back_buffer, fb_size);
+
     uint32_t user_stack_top = process->sp;
     switch_user_mode(user_stack_top, process->ip);
 

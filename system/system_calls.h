@@ -21,4 +21,7 @@ void sys_load_program(uint16_t, char*);
 
 void sys_fork();
 
+void* sys_brk(uint32_t);
+void sys_sbrk(uint32_t*);
+
 

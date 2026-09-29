@@ -6,11 +6,11 @@
  * Bundles the syscall ids and wrapper declarations that kernel-internal
  * code gets from system/system_header.h + system/system_calls.h. Kept as
  * its own copy here (not shared with those) so user-space programs never
- * reach into kernel-only headers, and this can stay a small, stable ABI on
+ * reach into kernel-only headers, and this can stay a small, stable on
  * its own - the kernel-linked shell keeps using system/system_calls.* as
  * before.
  *
- * See interrupts/interrupt.asm for the register ABI:
+ * See interrupts/interrupt.asm for the registers:
  *   eax = syscall id, ebx = arg1, ecx = arg2, edx = arg3.
  */
 
@@ -40,6 +40,11 @@ typedef enum {
     SYS_FORK,
     SYS_EXEC,
     SYS_EXIT,
+
+    //MEMORY
+    SYS_BRK,
+    SYS_SBRK,
+
 } SyscallId;
 
 void     sys_write(char *string);
@@ -58,3 +63,5 @@ void     sys_fwrite(uint16_t cluster, char *filename, char *content);
 void     sys_load_program(uint16_t cluster, char *filename);
 
 void sys_exit();
+
+void* sys_brk(uint32_t);

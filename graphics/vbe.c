@@ -5,6 +5,7 @@
 #include "../memory/memory.h"
 #include "font_renderer.h"
 #include <stddef.h>
+#include "../process/process_manager.h"
 
 uint8_t* back_buffer = NULL;
 
@@ -81,7 +82,7 @@ void put_pixel(uint32_t x, uint32_t y, Color color)
     // if(!framebuffer || !pitch || !bpp) return;
 
     // pixel (x, y), assuming BGR order (typical for VBE direct-color modes)
-    uint8_t *pixel = back_buffer + y * pitch + x * bpp;
+    uint8_t *pixel = running_process->back_buffer + y * pitch + x * bpp;
 
     pixel[0] = (pixel[0] * (255 - color.alpha) + color.blue * color.alpha) / 255;
     pixel[1] = (pixel[1] * (255 - color.alpha) + color.green * color.alpha) / 255;
@@ -90,6 +91,13 @@ void put_pixel(uint32_t x, uint32_t y, Color color)
 }
 void present() {
     memcpy((void*)framebuffer, (void*)back_buffer, fb_size);
+}
+
+void present_process(void* back_buffer) {
+
+        memcpy((void*)framebuffer, (void*)back_buffer, fb_size);
+
+
 }
 
 void clear_scr() {

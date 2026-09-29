@@ -122,3 +122,11 @@ void sys_fork() {
 
 }
 
+
+
+void* sys_brk(uint32_t size) {
+
+    uint32_t vaddr;
+    asm volatile("int $0x80" :: "a"(SYS_FORK));
+
+}

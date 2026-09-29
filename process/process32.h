@@ -1,6 +1,7 @@
 #pragma once 
 #include<stdint.h>
 #include"../file_system/fat16.h"
+#include "../memory/heap.h"
 
 #define USER_STACK_TOP 0xBFFFF000
 
@@ -47,8 +48,9 @@ typedef struct Process_32{
 
     uint32_t hp_start; // Process Heap Pointer
     uint32_t hp_end;
+    int current_heaps;
+    Heap process_heap[MAX_HEAPS];
 
-    
 
 
     uint32_t* page_directory;// Process Page Directory
@@ -61,6 +63,8 @@ typedef struct Process_32{
     // corrupt another's. Nothing enables SSE (CR4.OSFXSR is never set), so
     // fsave/frstor is the right pair here, not fxsave/fxrstor.
     uint8_t fpu_state[108];
+
+    uint8_t* back_buffer;
 
 
     Vma* vma_list;

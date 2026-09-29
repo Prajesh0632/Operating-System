@@ -92,9 +92,15 @@ void handle_interrupt(int vector, int error_code) {
         } 
 
         if(vector == 32) {
+
+
+
           
           counter--;
           if(counter < 1) {
+
+               present_process(running_process->back_buffer);
+
                update_screen = true;
                counter = 1000 / fps;
           }
@@ -139,7 +145,7 @@ void handle_syscall(int type, int value, int extra, int extra1, uint32_t* regs) 
    case SYS_WRITE:
        
         write_text((char*)value);
-        present();
+        present_process(running_process->back_buffer);
         break;
 
    case SYS_READ: {
@@ -203,6 +209,16 @@ void handle_syscall(int type, int value, int extra, int extra1, uint32_t* regs) 
      case SYS_EXIT:
         exit_proc();
         break;
+
+
+     case SYS_BRK:
+        uint32_t* vaddr = (uint32_t*)(uintptr_t)extra;
+        uint32_t size = (uint32_t)value;
+        uint32_t val = (uint32_t)process_halloc(size);
+        *vaddr = val;
+        break;
+
+
 
          
 

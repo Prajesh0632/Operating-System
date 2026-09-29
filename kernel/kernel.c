@@ -22,6 +22,7 @@
 
 
 
+
 uint32_t init_user_stack() {
 
      uint32_t user_stack = (uint32_t)fralloc_kernel(PAGE_SIZE *4);
@@ -47,9 +48,9 @@ void main() {
 
 
 
- Triangle t[1] = {200, 200, 0, 100, 300, 0, 300, 300, 0, COLOR_RED, COLOR_GREEN, COLOR_BLUE};
- draw_triangle(t, 1);   
- present();
+//  Triangle t[1] = {200, 200, 0, 100, 300, 0, 300, 300, 0, COLOR_BLUE, COLOR_WHITE, COLOR_RED};
+//  draw_triangle(t, 1);   
+//  present();
 
 
     
@@ -66,7 +67,7 @@ void main() {
 //     if(is_pressed(SC_S) && y < 600) y += speed;
 
 
-//    clear_scr();
+//      clear_scr();
 //     // draw_line(5, 5, 100, 100, COLOR_RED);
 //     draw_rect_fill(x, y, 100, 100, col);
 //     // draw_circle(500, 500, 100, COLOR_BLUE);
@@ -89,14 +90,15 @@ void main() {
     
      
     
-    // Process_32* process = (Process_32*)halloc(sizeof(Process_32));
+    Process_32* process = (Process_32*)halloc(sizeof(Process_32));
 
-    // process->ip = (uint32_t)user_prog;
-    // process->page_directory = page_directory;
-    // process->sp = init_user_stack();
-    // process->ready = true;
+    process->ip = (uint32_t)user_prog;
+    process->page_directory = page_directory;
+    process->sp = init_user_stack();
+    process->ready = true;
+    process->back_buffer = back_buffer;
 
-    // start_user_process(process, 0, 0);
+    start_user_process(process, 0, 0);
 
 
 

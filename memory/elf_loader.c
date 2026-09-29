@@ -143,16 +143,40 @@ void load_program(const char *name, uint16_t dir_cluster, Process_32 *process)
 
     if (last_vaddr == 0)
         return;
-    uint32_t process_heap_vaddr = align_up(last_vaddr);
+ 
+    uint32_t back_buffer_vaddr = align_up(last_vaddr);    
+
     uint32_t process_stack_vaddr = align_down(USER_STACK_TOP);
 
-    if (process_stack_vaddr <= process_heap_vaddr)
+    if (process_stack_vaddr <= back_buffer_vaddr)
         return;
 
     process->sp = process_stack_vaddr;
-    process->hp_start = process_heap_vaddr;
-    process->hp_end = process_heap_vaddr;
+   
     process->ip = process_start_vaddr;
+
+    //setup per process back buffer
+    process->back_buffer = (uint8_t*)back_buffer_vaddr;
+    for(uint32_t p = 0; p < 576; p++) {
+        vmm_map_page((uint32_t)process->back_buffer + p * PAGE_SIZE, process->page_directory);
+    }
+
+    Vma* back_buffer_vma = (Vma*)halloc(sizeof(Vma));
+    back_buffer_vma->v_start = back_buffer_vaddr;
+    back_buffer_vma->pages_required = 576;
+    back_buffer_vma->v_end = back_buffer_vaddr + back_buffer_vma->pages_required * PAGE_SIZE - 1;
+    back_buffer_vma->vaddr = back_buffer_vaddr;
+    back_buffer_vma->inFile = false;
+
+    Vma* vma_tail_bb = process->vma_list;
+    while(vma_tail_bb->next != NULL) vma_tail_bb = vma_tail_bb->next;
+    vma_tail_bb->next = back_buffer_vma;
+    back_buffer_vma->next = NULL;
+
+
+    process->hp_start = (uint32_t)process->back_buffer + 576 * PAGE_SIZE;
+    process->hp_end = process->hp_start;
+    
     
     Vma* stack_vma = (Vma*)halloc(sizeof(Vma));
     stack_vma->v_end = process_stack_vaddr;

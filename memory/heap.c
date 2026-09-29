@@ -1,5 +1,8 @@
 #include "heap.h"
 #include "pmm.h"
+#include "paging.h"
+#include "../process/process_manager.h"
+#include "vmm.h"
 
 
 
@@ -10,9 +13,9 @@ Heap heap_list[MAX_HEAPS];
 
 
 
-uint8_t allocate_frame() {
+uint8_t allocate_frame(Heap* heap_list, int* current_heaps, uint32_t* page_directory) {
 
-    if(current_heaps < MAX_HEAPS)
+    if(*current_heaps < MAX_HEAPS)
     {
 
          // Kernel structs (like Process_32) get halloc'd and then kept alive
@@ -23,9 +26,9 @@ uint8_t allocate_frame() {
          if(!frame) {
             return 0;
          }
-         heap_list[current_heaps].base = (uint64_t)(uintptr_t)frame;
-         heap_list[current_heaps].start = NULL;
-         current_heaps++;
+         heap_list[*current_heaps].base = (uint64_t)(uintptr_t)frame;
+         heap_list[*current_heaps].start = NULL;
+         (*current_heaps)++;
 
          return 1;
 
@@ -34,18 +37,92 @@ uint8_t allocate_frame() {
 
     return 0;
 
-    
 
-   
+
+
 
 
 
 }
 
 
+uint8_t allocate_process_frame() {
+
+    if(running_process->current_heaps < MAX_HEAPS)
+    {
+
+       
+           if(running_process->current_heaps < MAX_HEAPS) {
+        vmm_map_page(running_process->hp_end, running_process->page_directory);
+        running_process->process_heap[running_process->current_heaps].base = running_process->hp_end;
+        running_process->process_heap[running_process->current_heaps].start = NULL;
+        running_process->current_heaps++;
+        running_process->hp_end += PAGE_SIZE;
+        return 1;
+    }
+         return 1;
+
+
+    }
+
+    return 0;
+
+
+
+
+
+
+
+}
+
+void* process_halloc(uint64_t size) {
+
+    if(size + sizeof(HeapNode) > PAGE_SIZE) {
+        return NULL;
+    }
+
+    for(int i = 0; i < running_process->current_heaps; i++) {
+
+        HeapNode* node = running_process->process_heap[i].start;
+        HeapNode* tail = NULL;
+
+        while(node != NULL) {
+
+            if(node->limit >= size && !node->occupied) {
+                return (void*)(uintptr_t)realloc(node, size);
+            }
+
+            tail = node;
+            node = node->next;
+
+        }
+
+        if(!tail) {
+            return (void*)(uintptr_t)alloc(size, i, running_process->process_heap);
+        }
+
+        uint64_t tail_end = tail->base + tail->limit + sizeof(HeapNode);
+
+        uint64_t occupied = tail_end - running_process->process_heap[i].base;
+        uint64_t available = PAGE_SIZE - occupied;
+
+        if(available >= size + sizeof(HeapNode)) {
+            return (void*)(uintptr_t)alloc(size, i, running_process->process_heap);
+        }
+
+    }
+
+    uint8_t success = allocate_process_frame();
+    if(success) return (void*)(uintptr_t)alloc(size, running_process->current_heaps - 1, running_process->process_heap);
+
+    return NULL;
+
+}
+
+
 void init_heap() {
 
-   allocate_frame();
+   allocate_frame(heap_list, &current_heaps, page_directory);
 
 
 }
@@ -68,18 +145,18 @@ void* halloc(uint64_t size) {
             if(node->limit >= size && !node->occupied) {
                 return (void*)(uintptr_t)realloc(node, size);
             }
-            
+
             tail = node;
             node = node->next;
-            
+
 
         }
 
 
         if(!tail) {
-            return (void*)(uintptr_t)alloc(size, i);
+            return (void*)(uintptr_t)alloc(size, i, heap_list);
         }
-        
+
 
         uint64_t tail_end = tail->base + tail->limit + sizeof(HeapNode);
 
@@ -87,19 +164,19 @@ void* halloc(uint64_t size) {
         uint64_t available = PAGE_SIZE - occupied;
 
         if(available >= size + sizeof(HeapNode)) {
-            return (void*)(uintptr_t)alloc(size, i);
+            return (void*)(uintptr_t)alloc(size, i, heap_list);
         }
-        
-        
-        
 
-        
+
+
+
+
     }
 
-   
 
-    uint8_t success = allocate_frame();
-    if(success) return (void*)(uintptr_t)alloc(size, current_heaps-1);
+
+    uint8_t success = allocate_frame(heap_list, &current_heaps, page_directory);
+    if(success) return (void*)(uintptr_t)alloc(size, current_heaps-1, heap_list);
     
     return NULL;
 
@@ -126,8 +203,8 @@ HeapNode* create_node(uint64_t addr, uint64_t limit) {
 }
 
 
-uint64_t alloc(uint64_t size, int index) {
-      
+uint64_t alloc(uint64_t size, int index, Heap* heap_list) {
+
     Heap* heap = &heap_list[index];
     HeapNode* node = heap->start;
 
