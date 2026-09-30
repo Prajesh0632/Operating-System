@@ -10,9 +10,10 @@ This is a learning project: the goal is to understand how an OS actually works b
 - **Manages memory with paging** — the kernel runs in its own "higher half" of memory, and pages physical RAM in on demand instead of loading everything up front.
 - **Runs real programs in isolation** — each program gets its own address space and can't see or touch another program's memory (or the kernel's), enforced by the CPU's own protection hardware, not just convention.
 - **Loads real ELF executables** — programs are compiled normally and loaded from disk, the same file format Linux uses.
-- **Switches between programs** — a process can start another program, suspend itself, and correctly resume exactly where it left off when that program exits.
+- **Switches between programs** — a process can start another program, suspend itself, and correctly resume exactly where it left off when that program exits. Programs run one at a time, cooperatively: a child has to exit before the shell can start another.
 - **Has a simple filesystem** — a FAT16 disk driver so files actually persist across reboots.
-- **Has a shell** — a small command-line interface with `cd`, `ls`, `cat`, `touch`, `write`, `delete`, `mkdir`, `run`, and `clear`.
+- **Has a shell** — a small command-line interface with `cd`, `ls`, `cat`, `touch`, `write`, `delete`, `mkdir`, `run`, `clear`, `help`, and `exit`.
+- **Draws graphics** — a VESA (VBE) linear-framebuffer driver with a software rasterizer: lines, rectangles, filled circles, triangles with per-vertex color, BMP image loading, bitmap font text, and basic keyboard input polling. Each process gets its own back buffer.
 
 ## How it's put together
 
@@ -27,8 +28,12 @@ This is a learning project: the goal is to understand how an OS actually works b
 | `file_system/` | The FAT16 driver and the disk (ATA) driver underneath it |
 | `command_shell/` | The interactive shell |
 | `screen_driver/`, `keyboard_driver/`, `port_io/` | Basic drivers for text output, keyboard input, and hardware I/O |
+| `graphics/` | The VBE framebuffer driver and software rasterizer (shapes, triangles, bitmaps, fonts, input) |
 | `user_space/` | The code that actually runs user programs, and the switch into user mode |
 | `system/` | The system call interface programs use to talk to the kernel |
+| `userland/` | Standalone user-space programs and `nolibc`, the minimal syscall wrapper library they link against |
+| `headers/` | Small shared helpers (string functions, formatted I/O) used across the kernel |
+| `low level/` | Low-level assembly helpers (e.g. RAM detection) used by the bootloader |
 
 ## Running it
 
@@ -46,6 +51,12 @@ mkfs.fat -F 16 -n MYOS_DISK fat16_disk.img
 ```
 
 Once it boots, you'll land in the shell. Type `help` to see the available commands, or `run <file>` to launch a program from the disk.
+
+To build a standalone user-space program and drop it onto the disk image so `run` can find it:
+
+```bash
+./build_user.sh userland/programs/hello.c hello.elf
+```
 
 ## Where this is at
 
