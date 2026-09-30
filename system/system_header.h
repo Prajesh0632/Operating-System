@@ -28,6 +28,9 @@ typedef enum {
     //Memory 
     SYS_BRK,
     SYS_SBRK,
+
+    //Graphics 
+    SYS_CREATE_WINDOW,
     
     
 

@@ -2,6 +2,7 @@
 #include<stdint.h>
 #include"../file_system/fat16.h"
 #include "../memory/heap.h"
+#include "../graphics/window.h"
 
 #define USER_STACK_TOP 0xBFFFF000
 
@@ -50,6 +51,8 @@ typedef struct Process_32{
     uint32_t hp_end;
     int current_heaps;
     Heap process_heap[MAX_HEAPS];
+
+    Window* window; // Process window 
 
 
 

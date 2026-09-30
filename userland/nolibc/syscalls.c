@@ -92,3 +92,16 @@ void* sys_brk(uint32_t size) {
     return (void*)vaddr;
 
 }
+
+
+
+bool sys_create_window(Window window) {
+
+
+    int flag;
+    asm volatile("int $0x80" :: "a"(SYS_CREATE_WINDOW), "b"(&window), "c"(&flag) : "memory");
+
+    return flag;
+
+
+}

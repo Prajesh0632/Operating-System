@@ -1,0 +1,75 @@
+#include "window.h"
+#include "../process/process_manager.h"
+#include "../memory/pmm.h"
+#include "vbe.h"
+
+bool create_window(uint32_t width, uint32_t height, int x_pos, int y_pos) {
+
+    running_process->window = (Window*)process_halloc(sizeof(Window));
+    Window* win = running_process->window;
+    win->win_x_pos = x_pos;
+    win->win_y_pos = y_pos;
+    win->x_offset = 10;
+    win->y_offset = 10;
+    win->x_pos = win->win_x_pos + win->x_offset;
+    win->y_pos = win->win_y_pos + win->y_offset;
+    win->width = width;
+    win->height = height;
+
+
+
+    draw_win();
+    present_process(running_process->back_buffer);
+    return true;
+    
+}
+
+
+void draw_win() {
+
+    Process_32* process = running_process;
+    Window* window = process->window;
+
+    
+    for(uint32_t i = 0; i < window->height + window->y_offset; i++) {
+            for(uint32_t j = 0; j < window->width + window->x_offset; j++) {
+
+                put_pixel(window->win_x_pos + j, window->win_y_pos + i, COLOR_BLACK);
+
+            }
+
+
+    }
+   
+
+    
+
+    for(uint32_t i = 0; i < window->y_offset; i++) {
+            for(uint32_t j = 0; j < window->width + window->x_offset; j++) {
+
+                put_pixel(window->win_x_pos + j, window->win_y_pos + i, COLOR_RED);
+
+            }
+
+
+    }
+
+    for(uint32_t i = 0; i < window->height; i++) {
+        for(uint32_t j = 0; j < window->x_offset; j++) {
+            put_pixel(window->win_x_pos + j, window->win_y_pos + i, COLOR_RED);
+            put_pixel(window->win_x_pos + window->width + j, window->win_y_pos + i, COLOR_RED);
+
+
+        }
+    }
+
+    for(uint32_t i = 0; i < window->y_offset; i++) {
+            for(uint32_t j = 0; j < window->width + window->x_offset; j++) {
+
+                put_pixel(window->win_x_pos + j, window->win_y_pos + window->height + i, COLOR_RED);
+
+            }
+
+
+    }
+}

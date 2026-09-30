@@ -5,15 +5,14 @@
 void _start(void)
 {
 
-    char name[20];
-    print("Enter your name: ");
-    scan("%s", name);
+   Window win;
+   win.width = 1000;
+   win.height = 700;
+   win.win_x_pos = 0;
+   win.win_y_pos = 0;
 
-    print("\nYour name is %s\n", name);
-    
-    uint32_t* addr =  (uint32_t*)sys_brk(32);
-    *addr = 100;
-    print("\n%d", *addr);
-    
+   if(sys_create_window(win)) {
+
+   }
     // sys_exit();
 }

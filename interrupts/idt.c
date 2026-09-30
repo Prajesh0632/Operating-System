@@ -10,6 +10,7 @@
 #include "../graphics/font_renderer.h"
 #include "../graphics/colors.h"
 #include "../graphics/vbe.h"
+#include "../graphics/window.h"
 
 const int fps = 120;
 
@@ -217,6 +218,15 @@ void handle_syscall(int type, int value, int extra, int extra1, uint32_t* regs) 
         uint32_t val = (uint32_t)process_halloc(size);
         *vaddr = val;
         break;
+
+
+     case SYS_CREATE_WINDOW:
+         Window* window = (Window*)value;
+         int* flag = (int*)extra;
+         *flag = create_window(window->width, window->height, window->win_x_pos, window->win_y_pos);
+         break;
+
+
 
 
 

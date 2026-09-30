@@ -45,6 +45,10 @@ typedef enum {
     SYS_BRK,
     SYS_SBRK,
 
+
+    //Graphics 
+    SYS_CREATE_WINDOW,
+
 } SyscallId;
 
 void     sys_write(char *string);
@@ -65,3 +69,18 @@ void     sys_load_program(uint16_t cluster, char *filename);
 void sys_exit();
 
 void* sys_brk(uint32_t);
+
+
+
+
+typedef struct Window
+{
+    uint32_t width;
+    uint32_t height;
+    int win_x_pos, win_y_pos;
+    int x_pos, y_pos;
+    uint32_t x_offset, y_offset;
+} Window __attribute__((packed));
+
+
+bool sys_create_window(Window);
