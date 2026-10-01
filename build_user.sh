@@ -22,8 +22,11 @@ gcc $CFLAGS -c "$NOLIBC_DIR/syscalls.c" -o "${OUT%.elf}_syscalls.o"
 gcc $CFLAGS -c "$STIO_DIR/stio.c" -o "${OUT%.elf}_stio.o"
 gcc $CFLAGS -c "$STR_DIR/str.c" -o "${OUT%.elf}_str.o"
 
+echo "Building ProtoGL (protogl.o)"
+bash build_protogl.sh
+
 echo "Linking $OUT (ELF32, entry _start, base 0x400000)"
-ld -m elf_i386 -T "$LD_SCRIPT" "${OUT%.elf}.o" "${OUT%.elf}_syscalls.o" "${OUT%.elf}_stio.o" "${OUT%.elf}_str.o" -o "$OUT"
+ld -m elf_i386 -T "$LD_SCRIPT" "${OUT%.elf}.o" "${OUT%.elf}_syscalls.o" "${OUT%.elf}_stio.o" "${OUT%.elf}_str.o" protogl.o -o "$OUT"
 
 echo
 readelf -h "$OUT" | grep -E 'Type|Entry|Machine'

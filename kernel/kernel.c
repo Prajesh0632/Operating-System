@@ -18,6 +18,7 @@
 #include "../keyboard_driver/scancodes.h"
 #include "../graphics/bitmap.h"
 #include "../graphics/polygon.h"
+#include "../time/timer.h"
 
 
 
@@ -44,50 +45,11 @@ void main() {
     init_tss((uint32_t)(_kernel_end + 0x200000));
     init_fat16();
     init_graphics();
+    init_time();
     init_pit(1000);
 
 
 
-//  Triangle t[1] = {200, 200, 0, 100, 300, 0, 300, 300, 0, COLOR_BLUE, COLOR_WHITE, COLOR_RED};
-//  draw_triangle(t, 1);   
-//  present();
-
-
-    
-//     int x = 50, y = 50;
-//     int dir = 0;
-
-//     Color col = {0, 255, 0, 10};
-//     while(true) {
-
-//     int speed = 3;
-//     if(is_pressed(SC_A) && x > 50) x -= speed;
-//     if(is_pressed(SC_D) && x < 800) x += speed;
-//     if(is_pressed(SC_W) && y > 50) y -= speed;
-//     if(is_pressed(SC_S) && y < 600) y += speed;
-
-
-//      clear_scr();
-//     // draw_line(5, 5, 100, 100, COLOR_RED);
-//     draw_rect_fill(x, y, 100, 100, col);
-//     // draw_circle(500, 500, 100, COLOR_BLUE);
-//     // draw_circle_fill(200, 200, 100, COLOR_RED);
-
-    
-//    if(update_screen) {present(); update_screen = false;}
-    
-   
-
-//     }
-
-//     write_text("Program Exited\n");
-
-
-// init_image("IMAGE.BMP", 0);
-// present();
-
-   
-    
      
     
     Process_32* process = (Process_32*)halloc(sizeof(Process_32));

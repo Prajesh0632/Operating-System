@@ -63,6 +63,8 @@ void init_graphics()
 
     pitch = display->pitch;
 
+    if(!running_process) return;
+
     for (uint32_t i = 0; i < WINDOW_HEIGHT; i++)
     {
         for (uint32_t j = 0; j < WINDOW_WIDTH; j++)
@@ -78,6 +80,8 @@ void init_graphics()
 
 void put_pixel(uint32_t x, uint32_t y, Color color)
 { 
+
+    if((x < 0 || x >= WINDOW_WIDTH) && (y < 0 && y >= WINDOW_HEIGHT))return;
 
     // if(!framebuffer || !pitch || !bpp) return;
 

@@ -31,6 +31,10 @@ typedef enum {
 
     //Graphics 
     SYS_CREATE_WINDOW,
+    SYS_UPDATE_WINDOW,
+    
+    //Time
+    SYS_GET_TIME,
     
     
 

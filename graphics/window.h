@@ -12,7 +12,8 @@ typedef struct Window
     uint32_t x_offset, y_offset;
 } Window __attribute__((packed));
 
-bool create_window(uint32_t, uint32_t, int, int);
+bool create_window(uint32_t, uint32_t, int, int, uint32_t, uint32_t);
+void update_window(uint8_t*);
 void draw_win();
 
 

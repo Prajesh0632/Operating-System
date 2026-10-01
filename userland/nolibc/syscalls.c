@@ -105,3 +105,20 @@ bool sys_create_window(Window window) {
 
 
 }
+
+
+uint32_t sys_get_time() {
+        
+    uint32_t time;
+    asm volatile("int $0x80" :: "a"(SYS_GET_TIME), "b"(&time) : "memory");
+    return time;
+
+}
+
+void sys_update_window(uint8_t* framebuffer) {
+
+    asm volatile("int $0x80" :: "a"(SYS_UPDATE_WINDOW), "b"(framebuffer) : "memory");
+    
+
+
+}

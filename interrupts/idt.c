@@ -11,11 +11,9 @@
 #include "../graphics/colors.h"
 #include "../graphics/vbe.h"
 #include "../graphics/window.h"
+#include "../time/timer.h"
 
-const int fps = 120;
 
-bool update_screen = false;
-int counter = 1000 / fps;
 
 idt_t interrupts[MAX_INTR];
 static idtr_t idtr;
@@ -96,15 +94,9 @@ void handle_interrupt(int vector, int error_code) {
 
 
 
+           update_clock();
           
-          counter--;
-          if(counter < 1) {
-
-               present_process(running_process->back_buffer);
-
-               update_screen = true;
-               counter = 1000 / fps;
-          }
+         
           
         }
 
@@ -123,6 +115,7 @@ void init_pit(uint32_t frequency) {
     // Clamp the divisor if it exceeds 16-bit bounds
     if (divisor > 0xFFFF) divisor = 0xFFFF;
     if (divisor < 1)      divisor = 1;
+
 
     // 2. Send the Command Byte to Port 0x43
     // Bits 7-6: 00  (Select Channel 0)
@@ -223,8 +216,19 @@ void handle_syscall(int type, int value, int extra, int extra1, uint32_t* regs) 
      case SYS_CREATE_WINDOW:
          Window* window = (Window*)value;
          int* flag = (int*)extra;
-         *flag = create_window(window->width, window->height, window->win_x_pos, window->win_y_pos);
+         *flag = create_window(window->width, window->height, window->win_x_pos, window->win_y_pos, window->x_offset, window->y_offset);
          break;
+
+     case SYS_UPDATE_WINDOW:
+          uint8_t* buffer = (uint8_t*)value;
+          update_window(buffer);    
+          break;
+
+     case SYS_GET_TIME:
+        uint32_t* current_time = (uint32_t*)value;
+        *current_time = get_time_now();
+        break;
+
 
 
 

@@ -48,6 +48,11 @@ typedef enum {
 
     //Graphics 
     SYS_CREATE_WINDOW,
+    SYS_UPDATE_WINDOW,
+
+
+    //TIME 
+    SYS_GET_TIME,
 
 } SyscallId;
 
@@ -71,6 +76,11 @@ void sys_exit();
 void* sys_brk(uint32_t);
 
 
+//Time 
+
+uint32_t sys_get_time();
+
+
 
 
 typedef struct Window
@@ -84,3 +94,4 @@ typedef struct Window
 
 
 bool sys_create_window(Window);
+void sys_update_window(uint8_t*);

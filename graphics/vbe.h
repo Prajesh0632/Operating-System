@@ -52,6 +52,8 @@ typedef struct vbe_mode_info_structure {
 
 extern uint8_t* back_buffer;
 extern uint32_t fb_size;
+extern uint16_t pitch;
+extern uint8_t bpp;
 
 void init_graphics();
 void put_pixel(uint32_t, uint32_t, Color);
