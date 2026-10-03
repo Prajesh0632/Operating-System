@@ -14,10 +14,13 @@ void _start(void)
 
    ProtoWindow* Window = create_proto_window(112, 84, 800, 600);
 
-   ProtoColor red = {255, 255, 255, 255};
-   ProtoColor blue = {0, 255, 0, 255};
-   ProtoColor green = {0, 0, 255, 255};
+   ProtoColor white = {255, 255, 255, 255};
+   ProtoColor red = {255, 0, 0, 255};
+   ProtoColor green = {0, 255, 0, 255};
+   ProtoColor blue = {0, 0, 255, 255};
    ProtoColor color = red;
+
+   
 
 
 
@@ -26,31 +29,32 @@ void _start(void)
 
    int counter = 3;
 
-   uint32_t time = get_proto_time();
+   ProtoVertex A = {100, 100, 100, red};
+   ProtoVertex B = {100, 200, 100, red};
+   ProtoVertex C = {200, 100, 100, red};
+   ProtoTriangle T = {A, B, C};
+
+   uint32_t fps = 60;
+   float frame_ms = 1000.0 / fps;
+
+   uint32_t next = get_proto_time() + frame_ms;
    while (!exit)
    {
 
-    clear_proto_window(color);
+    uint32_t now = get_proto_time();
+    if(now < next) continue;
+
+     
+      
+           clear_proto_window(white);
+           proto_draw_triangles(&T, 1);
+           update_proto_window(Window);
+
+           next += frame_ms;
 
 
-    if(get_proto_time() - time  > 1000) {
-      update_proto_window(Window);
-      counter++;
-      int rem = counter % 3;
-      if(rem == 0) {
-        color = red;
-      }
-      if(rem == 1) {
-        color = blue;
-      }
 
-      if(rem == 2) {
-        color = green;
-      }
-
-      time = get_proto_time();
-    
-    }
+      
 
 
    }

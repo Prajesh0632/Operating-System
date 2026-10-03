@@ -1,6 +1,7 @@
 #include "protogl.h"
 #include "nolibc.h"
 #include <stddef.h>
+#include "proto_draw.h"
 
 ProtoWindow* renderer = NULL;
 Window* main_window = NULL;
@@ -35,24 +36,18 @@ ProtoWindow* create_proto_window(int x_pos, int y_pos, uint32_t width, uint32_t 
    renderer = (ProtoWindow*)sys_brk(sizeof(ProtoWindow));
 //    renderer->framebuffer = (uint8_t*)sys_brk((width * height * bpp));
       renderer->framebuffer = framebuffer;
+      renderer->width = main_window->width;
+      renderer->height = main_window->height;
+      renderer->x = main_window->x_pos;
+      renderer->y = main_window->y_pos;
+
 
    return renderer;
 
 }
 
 
-void put_pixel(int x, int y, ProtoColor color) {
 
-if((x < 0 || x >= main_window->width) || (y < 0 || y >= main_window->height))return;
-
-   
-    uint8_t *pixel = renderer->framebuffer + y * (main_window->width * bpp) + x * bpp;
-
-    pixel[0] = (pixel[0] * (255 - color.alpha) + color.blue * color.alpha) / 255;
-    pixel[1] = (pixel[1] * (255 - color.alpha) + color.green * color.alpha) / 255;
-    pixel[2] = (pixel[2] * (255 - color.alpha) + color.red * color.alpha) / 255;
-
-}
 
 void clear_proto_window(ProtoColor color) {
 

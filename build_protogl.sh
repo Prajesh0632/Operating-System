@@ -17,8 +17,11 @@ gcc $CFLAGS -c "$PROTOGL_DIR/protogl.c" -o protogl_core.o
 echo "Compiling proto_window.c"
 gcc $CFLAGS -c "$PROTOGL_DIR/proto_window.c" -o proto_window.o
 
+echo "Compiling proto_draw.c"
+gcc $CFLAGS -c "$PROTOGL_DIR/proto_draw.c" -o proto_draw.o
+
 echo "Combining into $OUT"
-ld -m elf_i386 -r protogl_core.o proto_window.o -o "$OUT"
+ld -m elf_i386 -r protogl_core.o proto_window.o proto_draw.o -o "$OUT"
 
 echo
 echo "Built $OUT"
